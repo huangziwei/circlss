@@ -1,55 +1,47 @@
-# Circular-circular regression showcase: theta ~ s(phi, bs="cc") with
-# vmlss(), drawn on a torus (predictor angle around the ring, response
-# angle around the tube), with a 95% credible ribbon for the mean
-# direction. Writes man/figures/README-torus.png; the same code lives in
+# README headline figure: circular-circular regression with pnlss() --
+# the fitted mean direction winds once around the torus, with a 95%
+# delta-method ribbon. Writes man/figures/README-torus.png; the same code
+# (and the vmlss oscillation companion) lives in
 # vignettes/articles/circular-circular-regression.Rmd.
 
 library(mgcv)
 library(circlss)
 
-## ---- simulate circular-circular data ----
-rvm <- function(n, mu, kappa) {
-  mu <- rep_len(mu, n); kappa <- rep_len(kappa, n); out <- numeric(n)
-  for (i in seq_len(n)) {
-    k <- kappa[i]
-    a <- 1 + sqrt(1 + 4 * k * k); b <- (a - sqrt(2 * a)) / (2 * k)
-    r <- (1 + b * b) / (2 * b)
-    repeat {
-      z <- cos(pi * runif(1)); f <- (1 + r * z) / (r + z)
-      cc <- k * (r - f); u2 <- runif(1)
-      if (cc * (2 - cc) - u2 > 0 || log(cc / u2) + 1 - cc >= 0) {
-        out[i] <- sign(runif(1) - 0.5) * acos(max(min(f, 1), -1)) + mu[i]
-        break
-      }
-    }
-  }
-  atan2(sin(out), cos(out))
-}
-
+## ---- simulate: winding C-C data (projected normal draws) ----
 set.seed(20260612)
-n <- 200
+n <- 300
 phi <- runif(n, -pi, pi)
-mu_true <- 2 * atan(1.6 * sin(phi))
-kappa_true <- exp(1.4 + 0.6 * cos(phi))
-theta <- rvm(n, mu_true, kappa_true)
+dir_true <- phi + 0.6 * sin(phi)            # winds once per cycle
+gamma_true <- exp(0.6 + 0.5 * cos(phi))     # concentration scale
+theta <- atan2(gamma_true * sin(dir_true) + rnorm(n),
+               gamma_true * cos(dir_true) + rnorm(n))
 dat <- data.frame(theta = theta, phi = phi)
 
-## ---- fit: distributional von Mises, cyclic smooths in both parameters ----
+## ---- fit: projected normal, cyclic smooths in both mean components ----
 b <- gam(list(theta ~ s(phi, bs = "cc", k = 10),
                     ~ s(phi, bs = "cc", k = 10)),
-         family = vmlss(), data = dat, method = "REML",
+         family = pnlss(), data = dat, method = "REML",
          knots = list(phi = c(-pi, pi)))
 
 phig <- seq(-pi, pi, length.out = 400)
-## 95% band for mu: link-scale interval pushed through the monotone
-## tan-half link (Bayesian Vp standard errors, mgcv's default)
-prl <- predict(b, newdata = data.frame(phi = phig), type = "link",
-               se.fit = TRUE)
-mu_hat <- 2 * atan(prl$fit[, 1])
-mu_lo <- 2 * atan(prl$fit[, 1] - 1.96 * prl$se.fit[, 1])
-mu_hi <- 2 * atan(prl$fit[, 1] + 1.96 * prl$se.fit[, 1])
+pr <- predict(b, newdata = data.frame(phi = phig), type = "response")
+dir_hat <- atan2(pr[, 2], pr[, 1])
 
-## ---- torus drawing helpers ----
+## 95% band by the delta method: joint Vp through atan2(mu2, mu1)
+Xp <- predict(b, newdata = data.frame(phi = phig), type = "lpmatrix")
+lpi <- attr(Xp, "lpi")
+X1 <- Xp[, lpi[[1]], drop = FALSE]
+X2 <- Xp[, lpi[[2]], drop = FALSE]
+V <- b$Vp
+v11 <- rowSums((X1 %*% V[lpi[[1]], lpi[[1]]]) * X1)
+v22 <- rowSums((X2 %*% V[lpi[[2]], lpi[[2]]]) * X2)
+v12 <- rowSums((X1 %*% V[lpi[[1]], lpi[[2]]]) * X2)
+m1 <- pr[, 1]; m2 <- pr[, 2]; r2 <- m1^2 + m2^2
+se_dir <- sqrt(pmax(m2^2 * v11 + m1^2 * v22 - 2 * m1 * m2 * v12, 0)) / r2
+dir_lo <- dir_hat - 1.96 * se_dir
+dir_hi <- dir_hat + 1.96 * se_dir
+
+## ---- torus drawing helpers (as in the article) ----
 torus_xyz <- function(phi, theta, R = 1.9, r = 0.95) {
   list(x = (R + r * cos(theta)) * cos(phi),
        y = (R + r * cos(theta)) * sin(phi),
@@ -106,7 +98,6 @@ draw_torus <- function(dat, mu_hat, phig, lo = NULL, hi = NULL,
   if (!is.null(lo) && !is.null(hi)) {
     K <- 4
     i0 <- seq_len(length(phig) - 1)
-    i1 <- i0 + 1
     quads <- list()
     for (k in seq_len(K)) {
       t0 <- lo + (hi - lo) * (k - 1) / K
@@ -146,8 +137,8 @@ draw_torus <- function(dat, mu_hat, phig, lo = NULL, hi = NULL,
 ## ---- render ----
 dir.create("man/figures", showWarnings = FALSE, recursive = TRUE)
 png("man/figures/README-torus.png", width = 1500, height = 1180, res = 220)
-draw_torus(dat, mu_hat, phig, lo = mu_lo, hi = mu_hi)
+draw_torus(dat, dir_hat, phig, lo = dir_lo, hi = dir_hi)
 invisible(dev.off())
 cat("wrote man/figures/README-torus.png\n")
 cat("fit: conv =", b$outer.info$conv, " edf =", round(sum(b$edf), 2),
-    " band width range:", paste(round(range(mu_hi - mu_lo), 3), collapse=".."), "\n")
+    " se_dir range:", paste(round(range(se_dir), 3), collapse = ".."), "\n")

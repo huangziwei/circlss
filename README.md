@@ -6,13 +6,14 @@ angle, with every distribution parameter getting its own smooth.
 
 <p align="center">
 <img src="man/figures/README-torus.png" width="70%"
-     alt="Circular-circular regression drawn on a torus: data points and the fitted mean-direction curve winding over the tube" />
+     alt="Circular-circular regression drawn on a torus: data points and the fitted mean-direction curve, with its 95% ribbon, winding once around the tube" />
 </p>
 
-*A circular–circular fit on its natural canvas: predictor angle around the
-ring, response angle around the tube, and the fitted mean direction
-`mu(phi)` (red) winding over the surface — `gam(list(theta ~ s(phi,
-bs="cc"), ~ s(phi, bs="cc")), family = vmlss())`. Code in
+*Circular–circular regression on its natural canvas: predictor angle
+around the ring, response angle around the tube, and the fitted mean
+direction (red, with a 95% delta-method ribbon) **winding** once around
+the torus — `gam(list(theta ~ s(phi, bs="cc"), ~ s(phi, bs="cc")),
+family = pnlss())`. Code in
 [the torus article](https://huangziwei.github.io/circlss/articles/circular-circular-regression.html).*
 
 Documentation: <https://huangziwei.github.io/circlss/>
@@ -40,15 +41,17 @@ Requires `mgcv >= 1.9.4` (R >= 4.5 recommended).
 
 ## Use
 
-`vmlss()` is an mgcv *general family*: pass `gam()` a list of two formulas,
-one per distribution parameter — the mean direction (Fisher–Lee tan-half
-link) and the log concentration.
+The families are mgcv *general families*: pass `gam()` a list of two
+formulas, one per distribution parameter — for `vmlss()` the mean
+direction (Fisher–Lee tan-half link) and the log concentration; for
+`pnlss()` the two Cartesian components of the mean vector.
 
 ```r
 library(mgcv)
 library(circlss)
 
-# distributional von Mises: mu and log-kappa each smoothed, REML selection
+# circular response, linear covariate -- distributional von Mises:
+# mean direction and log-concentration each get their own smooth
 b <- gam(list(theta ~ s(x),    # location, tan-half link
                     ~ s(x)),   # log concentration
          family = vmlss(), data = dat, method = "REML")
@@ -57,16 +60,23 @@ summary(b)
 plot(b, pages = 1)
 predict(b, newdata = nd, type = "response")  # columns: mu (radians), kappa
 
-# circular covariate: mgcv's cyclic splines are native and correct
+# circular-circular regression -- projected normal: the fitted direction
+# atan2(mu2, mu1) has no branch cut and can wind around the circle
 b2 <- gam(list(theta ~ s(phi, bs = "cc"), ~ s(phi, bs = "cc")),
-          family = vmlss(), data = dat, method = "REML",
+          family = pnlss(), data = dat, method = "REML",
           knots = list(phi = c(-pi, pi)))
+fv <- fitted(b2)                      # columns: mu1, mu2
+direction <- atan2(fv[, 2], fv[, 1])  # fitted mean direction
 ```
 
-The response is in radians, any branch (`[0, 2pi)` or `(-pi, pi]`). The
-tan-half location link maps onto `(-pi, pi)`: the linear predictor's
-intercept sets the reference direction and its antipode is unrepresentable
-(the standard Fisher–Lee caveat).
+For circular–circular data prefer `pnlss()`: the tan-half map in
+`vmlss()` cannot wind (winding number zero) nor cross the antipode of
+the response origin, so with a circular covariate it suits oscillation
+around a reference direction, not rotation-type association — the
+[torus article](https://huangziwei.github.io/circlss/articles/circular-circular-regression.html)
+shows both.
+
+The response is in radians, any branch (`[0, 2pi)` or `(-pi, pi]`).
 
 Log-likelihood derivatives are implemented to fourth order, so full Newton
 REML works (as do `optimizer = "efs"` and the other general-family
