@@ -39,6 +39,11 @@ HERE = pathlib.Path(__file__).parent
 OUT = HERE / "out"
 OUT.mkdir(exist_ok=True)
 
+# The parity INSTRUMENT runs at tightened convergence on both sides so
+# engine stopping points don't masquerade as implementation disagreement
+# (production defaults are mgcv's/hea's own; this is measurement hygiene).
+CTL = {"epsilon": 1e-10, "newton": {"conv_tol": 1e-11}}
+
 CASES = {
     "lin": {
         "formulas": ["y ~ x", "~ x"],
@@ -118,7 +123,7 @@ for name, spec in CASES.items():
     df = pl.read_csv(HERE / "data" / f"{name}.csv")
     m = CLRegression(
         spec["formulas"], data=df, family=FAMILIES[fam_name], method="REML",
-        knots=spec["knots"],
+        knots=spec["knots"], control=CTL,
     )
     g = m.gam_fit
     res = m.result

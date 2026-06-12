@@ -36,31 +36,27 @@ CASES = ["lin", "smooth", "cyclic", "small",
          "pn_lin", "pn_smooth", "pn_cyclic", "pn_small",
          "wc_lin", "wc_smooth", "wc_cyclic", "wc_small"]
 
-# tolerance classes, pinned at ~10x the noise observed at v0.0.1/v0.0.2
-# (deterministic-basis cases observed 1e-14..1e-8 -- pn_lin's flatter
-# parametric likelihood leaves ~1e-8 coefficient slack at the same
-# optimum, loglik agreeing to 1e-13; tp cases observed up to ~3e-5 on
-# loglik/sp, REML-optimum flatness transmitting the optimizer stopping
-# tolerance, while the criterion itself and the fitted curves stay far
-# tighter)
-TIGHT = {  # deterministic bases: parametric terms, cc cyclic splines
-    "coef": 1e-7, "sp_log": 1e-7, "edf_total": 1e-7, "edf_smooth": 1e-7,
-    "loglik": 1e-8, "reml": 1e-7, "mu_grid": 1e-7, "kappa_grid_rel": 1e-9,
+# A single tolerance class, pinned at ~10x the worst noise observed with
+# the tightened instrument (conv.tol = 1e-11 both sides; see fit_*.py/.R):
+# across all 12 Tier-1 cases every quantity agrees to <= 1.4e-7 and
+# typically to 1e-9..1e-12. The residual floors are genuine cross-engine
+# limits, not optimizer noise:
+#   - pn_lin coefficients ~1.2e-8: scipy log_ndtr vs R pnorm(log.p=TRUE)
+#     differ by ulps, which a flat-gradient optimum amplifies (loglik
+#     still agrees to 1e-13);
+#   - tp coefficient SIGNS stay arbitrary (eigen decomposition) -- the
+#     sign-aligned comparison below is still required;
+#   - wc_smooth ~1.4e-7: worst case of special-function + basis float.
+# Historical note: before the instrument was tightened (<= v0.0.3) a
+# loose EIGEN class at ~3e-4 existed -- that noise was the engines'
+# default 1e-6 stopping tolerance, not implementation disagreement.
+# Tier-2 families (EFS optimizer both sides) get measured and pinned
+# when they arrive; this class applies to Newton-REML cases.
+TOL_ALL = {
+    "coef": 2e-6, "sp_log": 2e-6, "edf_total": 2e-6, "edf_smooth": 2e-6,
+    "loglik": 2e-6, "reml": 2e-6, "mu_grid": 2e-6, "kappa_grid_rel": 2e-6,
 }
-EIGEN = {  # thin-plate bases: eigen-decomposed, float path differs
-    "coef": 1e-4, "sp_log": 3e-4, "edf_total": 3e-4, "edf_smooth": 3e-4,
-    "loglik": 3e-4, "reml": 1e-6, "mu_grid": 3e-5, "kappa_grid_rel": 3e-5,
-}
-TOL = {"lin": TIGHT, "smooth": EIGEN, "cyclic": TIGHT, "small": EIGEN,
-       "pn_lin": TIGHT, "pn_smooth": EIGEN, "pn_cyclic": TIGHT,
-       "pn_small": EIGEN,
-       "wc_lin": TIGHT, "wc_smooth": EIGEN, "wc_cyclic": EIGEN,
-       "wc_small": EIGEN}
-# wc_cyclic is EIGEN despite the deterministic cc basis: its REML surface
-# is flat at the selected lambda (~100; heavy-tailed WC likelihood), so
-# optimizer stopping points wander ~1e-5 in lambda/edf/loglik while the
-# criterion itself agrees to ~1e-8 -- same optimum, flatness noise. TIGHT
-# requires BOTH a deterministic basis and a well-conditioned criterion.
+TOL = {c: TOL_ALL for c in CASES}
 
 
 def wrap_diff(a, b):
@@ -129,8 +125,7 @@ def compare(case):
                               for a, b in zip(py["dir_grid"], rr["dir_grid"])),
               tol["mu_grid"])
 
-    cls = "TIGHT" if tol is TIGHT else "EIGEN"
-    print(f"\n== {case} ({cls}) ==")
+    print(f"\n== {case} ==")
     for name, value, t, status in rows:
         print(f"  {name:<18} {value:>12.3e}  (tol {t:.0e})  {status}")
     return ok

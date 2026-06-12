@@ -13,6 +13,13 @@ here <- if (length(args) >= 1) args[1] else "."
 out_dir <- file.path(here, "out")
 dir.create(out_dir, showWarnings = FALSE)
 
+## The parity INSTRUMENT runs at tightened convergence so engine stopping
+## points don't masquerade as implementation disagreement (production
+## defaults are mgcv's; this is measurement hygiene, not a recommendation).
+## At these tolerances Newton may end on a step-failure with relative
+## gradient ~1e-10 -- converged beyond requirement; warnings are expected.
+ctl <- gam.control(epsilon = 1e-10, newton = list(conv.tol = 1e-11))
+
 cases <- list(
   lin = list(
     formula = list(y ~ x, ~ x),
@@ -73,8 +80,8 @@ for (nm in names(cases)) {
   cs <- cases[[nm]]
   fam_name <- if (is.null(cs$family)) "vmlss" else cs$family
   dat <- read.csv(file.path(here, "data", paste0(nm, ".csv")))
-  b <- gam(cs$formula, family = families[[fam_name]](), data = dat,
-           method = "REML", knots = cs$knots)
+  b <- suppressWarnings(gam(cs$formula, family = families[[fam_name]](),
+           data = dat, method = "REML", knots = cs$knots, control = ctl))
   conv <- is.null(b$outer.info$conv) ||
     identical(b$outer.info$conv, "full convergence")
   Xp <- predict(b, type = "lpmatrix")
