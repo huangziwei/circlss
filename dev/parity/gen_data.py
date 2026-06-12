@@ -57,3 +57,39 @@ x = rng.uniform(0.0, 1.0, n)
 mu = 2.0 * np.arctan(1.4 * np.sin(2.0 * np.pi * x))
 kappa = np.exp(1.0 + 0.8 * np.cos(2.0 * np.pi * x))
 write("small", {"y": rng.vonmises(mu, kappa), "x": x})
+
+# ---- projected normal battery (v0.0.2) -- appended AFTER the vmlss cases
+# so the rng stream above is unchanged and the frozen vmlss fixtures stay
+# byte-identical. theta = atan2(mu2 + z2, mu1 + z1), z ~ N(0, 1).
+
+
+def rpn(mu1, mu2):
+    return np.arctan2(mu2 + rng.standard_normal(mu2.shape),
+                      mu1 + rng.standard_normal(mu1.shape))
+
+
+# E. linear covariate in both Cartesian mean components
+n = 256
+x = rng.uniform(0.0, 1.0, n)
+write("pn_lin", {"y": rpn(0.8 + 1.2 * x, -0.4 + 1.5 * x), "x": x})
+
+# F. smooth covariate, thin-plate basis
+n = 256
+x = rng.uniform(0.0, 1.0, n)
+write("pn_smooth", {"y": rpn(1.8 * np.sin(2.0 * np.pi * x) + 0.5,
+                             1.2 * np.cos(2.0 * np.pi * x) - 0.3),
+                    "x": x})
+
+# G. the winding case: mean direction = phi exactly (winding number 1),
+#    constant concentration -- representable by pnlss, not by vmlss
+n = 300
+phi = rng.uniform(-np.pi, np.pi, n)
+write("pn_cyclic", {"y": rpn(2.0 * np.cos(phi), 2.0 * np.sin(phi)),
+                    "phi": phi})
+
+# H. small-n variant of F
+n = 80
+x = rng.uniform(0.0, 1.0, n)
+write("pn_small", {"y": rpn(1.8 * np.sin(2.0 * np.pi * x) + 0.5,
+                            1.2 * np.cos(2.0 * np.pi * x) - 0.3),
+                   "x": x})

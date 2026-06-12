@@ -1,5 +1,6 @@
 {
  "case": "cyclic",
+ "family": "vmlss",
  "formulas": [
   "y ~ s(phi, bs='cc', k=10)",
   "~ s(phi, bs='cc', k=10)"

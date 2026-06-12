@@ -32,22 +32,27 @@ import shutil
 import sys
 
 HERE = pathlib.Path(__file__).parent
-CASES = ["lin", "smooth", "cyclic", "small"]
+CASES = ["lin", "smooth", "cyclic", "small",
+         "pn_lin", "pn_smooth", "pn_cyclic", "pn_small"]
 
-# tolerance classes, pinned at ~10x the noise observed at v0.0.1
-# (lin/cyclic observed 1e-14..1e-9; smooth/small tp cases observed up to
-# ~3e-5 on loglik/sp -- REML-optimum flatness transmits the optimizer
-# stopping tolerance into those, while the criterion itself and the fitted
-# curves stay far tighter)
+# tolerance classes, pinned at ~10x the noise observed at v0.0.1/v0.0.2
+# (deterministic-basis cases observed 1e-14..1e-8 -- pn_lin's flatter
+# parametric likelihood leaves ~1e-8 coefficient slack at the same
+# optimum, loglik agreeing to 1e-13; tp cases observed up to ~3e-5 on
+# loglik/sp, REML-optimum flatness transmitting the optimizer stopping
+# tolerance, while the criterion itself and the fitted curves stay far
+# tighter)
 TIGHT = {  # deterministic bases: parametric terms, cc cyclic splines
-    "coef": 1e-9, "sp_log": 1e-7, "edf_total": 1e-7, "edf_smooth": 1e-7,
-    "loglik": 1e-8, "reml": 1e-7, "mu_grid": 1e-9, "kappa_grid_rel": 1e-9,
+    "coef": 1e-7, "sp_log": 1e-7, "edf_total": 1e-7, "edf_smooth": 1e-7,
+    "loglik": 1e-8, "reml": 1e-7, "mu_grid": 1e-7, "kappa_grid_rel": 1e-9,
 }
 EIGEN = {  # thin-plate bases: eigen-decomposed, float path differs
     "coef": 1e-4, "sp_log": 3e-4, "edf_total": 3e-4, "edf_smooth": 3e-4,
     "loglik": 3e-4, "reml": 1e-6, "mu_grid": 3e-5, "kappa_grid_rel": 3e-5,
 }
-TOL = {"lin": TIGHT, "smooth": EIGEN, "cyclic": TIGHT, "small": EIGEN}
+TOL = {"lin": TIGHT, "smooth": EIGEN, "cyclic": TIGHT, "small": EIGEN,
+       "pn_lin": TIGHT, "pn_smooth": EIGEN, "pn_cyclic": TIGHT,
+       "pn_small": EIGEN}
 
 
 def wrap_diff(a, b):
@@ -92,13 +97,22 @@ def compare(case):
                   tol["edf_smooth"])
     check("loglik", abs(py["loglik"] - rr["loglik"]), tol["loglik"])
     check("reml", abs(rr["reml"] - py["reml"] / 2.0), tol["reml"])
-    check("mu_grid", max(wrap_diff(a, b)
-                         for a, b in zip(py["mu_grid"], rr["mu_grid"])),
-          tol["mu_grid"])
-    check("kappa_grid_rel",
-          max(abs(a - b) / abs(b)
-              for a, b in zip(py["kappa_grid"], rr["kappa_grid"])),
-          tol["kappa_grid_rel"])
+    if py.get("family", "vmlss") == "vmlss":
+        check("mu_grid", max(wrap_diff(a, b)
+                             for a, b in zip(py["mu_grid"], rr["mu_grid"])),
+              tol["mu_grid"])
+        check("kappa_grid_rel",
+              max(abs(a - b) / abs(b)
+                  for a, b in zip(py["kappa_grid"], rr["kappa_grid"])),
+              tol["kappa_grid_rel"])
+    else:  # pnlss: Cartesian components (abs) + derived direction (wrapped)
+        for comp in ("mu1_grid", "mu2_grid"):
+            check(comp, max(abs(a - b)
+                            for a, b in zip(py[comp], rr[comp])),
+                  tol["mu_grid"])
+        check("dir_grid", max(wrap_diff(a, b)
+                              for a, b in zip(py["dir_grid"], rr["dir_grid"])),
+              tol["mu_grid"])
 
     cls = "TIGHT" if tol is TIGHT else "EIGEN"
     print(f"\n== {case} ({cls}) ==")

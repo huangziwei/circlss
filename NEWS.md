@@ -1,3 +1,21 @@
+# circlss 0.0.2
+
+* `pnlss()`: projected normal family — the response is the angle of a
+  bivariate normal with mean `(mu1, mu2)` and identity covariance; both
+  Cartesian mean components carry identity links and their own linear
+  predictors. No tan-half branch cut: the fitted mean direction can cross
+  any angle and can *wind* around the circle, making `pnlss` the natural
+  family for circular–circular regression with rotation-type association
+  (`theta ~ phi`). Full fourth-order derivatives (Newton REML and EFS).
+* The differential battery against pycircstat2 doubles to eight cases:
+  the four `pnlss` cases (parametric, thin plate, cyclic-with-winding,
+  small-n) agree to the same tolerance classes as `vmlss` — near machine
+  precision on deterministic bases (the winding cyclic case to ~1e-10),
+  optimizer-stopping tolerance on thin-plate ones. The TIGHT class's
+  coefficient/curve thresholds were recalibrated from 1e-9 to 1e-7 to
+  cover the flatter parametric projected-normal likelihood (log-likelihood
+  still agrees to 1e-13 there).
+
 # circlss 0.0.1
 
 Initial release.

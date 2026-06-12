@@ -17,9 +17,12 @@ bs="cc"), ~ s(phi, bs="cc")), family = vmlss())`. Code in
 
 Documentation: <https://huangziwei.github.io/circlss/>
 
-v0.0.1 ships one family, the von Mises `vmlss()` — the reference
-implementation for the architecture. The remaining circular families
-(wrapped Cauchy, projected normal, Jones–Pewsey, sine-skewed JP, cardioid,
+Two families so far: the von Mises `vmlss()` (tan-half location link, log
+concentration — the reference implementation) and the projected normal
+`pnlss()` (identity-linked Cartesian mean components — no branch cut, so
+the fitted direction can sweep and *wind* around the full circle, the
+natural choice for circular–circular regression). The remaining circular
+families (wrapped Cauchy, Jones–Pewsey, sine-skewed JP, cardioid,
 Cartwright, wrapped normal, Kato–Jones) follow in v0.1.0, ported from
 [pycircstat2](https://github.com/circstat/pycircstat2) by the same recipe.
 

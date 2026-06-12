@@ -1,5 +1,6 @@
 {
  "case": "smooth",
+ "family": "vmlss",
  "formulas": [
   "y ~ s(x, k=10)",
   "~ s(x, k=10)"

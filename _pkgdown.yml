@@ -15,6 +15,7 @@ reference:
     and so one formula, with smooths — per distribution parameter.
   contents:
   - vmlss
+  - pnlss
 
 articles:
 - title: Worked examples

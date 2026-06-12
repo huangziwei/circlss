@@ -12,7 +12,7 @@ import pathlib
 import numpy as np
 import polars as pl
 
-from pycircstat2.distributions import CircularLL, vmlss
+from pycircstat2.distributions import CircularLL, pnlss, vmlss
 from pycircstat2.regression import CLRegression
 
 # ---------------------------------------------------------------------------
@@ -64,12 +64,38 @@ CASES = {
         "var": "x",
         "grid": np.linspace(0.0, 1.0, 101),
     },
+    # projected normal battery (v0.0.2): identity links, fitted direction
+    # is atan2(mu2, mu1); pn_cyclic has winding number 1
+    "pn_lin": {
+        "formulas": ["y ~ x", "~ x"],
+        "knots": None, "var": "x", "grid": np.linspace(0.0, 1.0, 101),
+        "family": "pnlss",
+    },
+    "pn_smooth": {
+        "formulas": ["y ~ s(x, k=10)", "~ s(x, k=10)"],
+        "knots": None, "var": "x", "grid": np.linspace(0.0, 1.0, 101),
+        "family": "pnlss",
+    },
+    "pn_cyclic": {
+        "formulas": ["y ~ s(phi, bs='cc', k=10)", "~ s(phi, bs='cc', k=10)"],
+        "knots": {"phi": [-np.pi, np.pi]}, "var": "phi",
+        "grid": np.linspace(-np.pi, np.pi, 101),
+        "family": "pnlss",
+    },
+    "pn_small": {
+        "formulas": ["y ~ s(x, k=8)", "~ s(x, k=8)"],
+        "knots": None, "var": "x", "grid": np.linspace(0.0, 1.0, 101),
+        "family": "pnlss",
+    },
 }
 
+FAMILIES = {"vmlss": vmlss, "pnlss": pnlss}
+
 for name, spec in CASES.items():
+    fam_name = spec.get("family", "vmlss")
     df = pl.read_csv(HERE / "data" / f"{name}.csv")
     m = CLRegression(
-        spec["formulas"], data=df, family=vmlss, method="REML",
+        spec["formulas"], data=df, family=FAMILIES[fam_name], method="REML",
         knots=spec["knots"],
     )
     g = m.gam_fit
@@ -80,6 +106,7 @@ for name, spec in CASES.items():
     edf_by = res.get("edf_by_smooth") or {}
     out = {
         "case": name,
+        "family": fam_name,
         "formulas": spec["formulas"],
         "coef_names": list(g.bhat.columns),
         "coef": [float(v) for v in g.bhat.row(0)],
@@ -90,9 +117,15 @@ for name, spec in CASES.items():
         "loglik": float(res["log_likelihood"]),
         "reml": float(res["reml"]),
         "grid": [float(v) for v in spec["grid"]],
-        "mu_grid": [float(v) for v in pp["mu"]],
-        "kappa_grid": [float(v) for v in pp["kappa"]],
     }
+    if fam_name == "vmlss":
+        out["mu_grid"] = [float(v) for v in pp["mu"]]
+        out["kappa_grid"] = [float(v) for v in pp["kappa"]]
+    else:  # pnlss: Cartesian mean components + derived direction
+        out["mu1_grid"] = [float(v) for v in pp["mu1"]]
+        out["mu2_grid"] = [float(v) for v in pp["mu2"]]
+        out["dir_grid"] = [float(v) for v in
+                           np.arctan2(pp["mu2"], pp["mu1"])]
     path = OUT / f"{name}_py.json"
     path.write_text(json.dumps(out, indent=1))
     print(f"{name}: loglik={out['loglik']:.6f} edf={out['edf_total']:.4f} "

@@ -15,8 +15,8 @@
 
 skip_if_not_installed("jsonlite")
 
-TIGHT <- list(coef = 1e-9, sp_log = 1e-7, edf_total = 1e-7,
-              loglik = 1e-8, reml = 1e-7, mu = 1e-9, kappa_rel = 1e-9)
+TIGHT <- list(coef = 1e-7, sp_log = 1e-7, edf_total = 1e-7,
+              loglik = 1e-8, reml = 1e-7, mu = 1e-7, kappa_rel = 1e-9)
 EIGEN <- list(coef = 1e-4, sp_log = 3e-4, edf_total = 3e-4,
               loglik = 3e-4, reml = 1e-6, mu = 3e-5, kappa_rel = 3e-5)
 

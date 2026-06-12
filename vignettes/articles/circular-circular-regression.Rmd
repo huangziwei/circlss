@@ -87,10 +87,17 @@ The fitted mean direction $\hat\mu(\varphi)$ on the response scale, with
 the data. With this link the mean stays inside $(-\pi, \pi)$, the
 Fisher–Lee branch:
 
+The 95% band comes from the link-scale standard errors (mgcv's Bayesian
+`Vp` intervals) pushed through the monotone tan-half link, the standard
+endpoint transform:
+
 ```{r flat}
 phig <- seq(-pi, pi, length.out = 400)
-pred <- predict(b, newdata = data.frame(phi = phig), type = "response")
-mu_hat <- pred[, 1]
+prl <- predict(b, newdata = data.frame(phi = phig), type = "link",
+               se.fit = TRUE)
+mu_hat <- 2 * atan(prl$fit[, 1])
+mu_lo <- 2 * atan(prl$fit[, 1] - 1.96 * prl$se.fit[, 1])
+mu_hi <- 2 * atan(prl$fit[, 1] + 1.96 * prl$se.fit[, 1])
 
 op <- par(mar = c(4, 4, 1, 1))
 plot(dat$phi, dat$theta, pch = 19, col = adjustcolor("#2c5aa0", 0.5),
@@ -102,11 +109,13 @@ axis(1, at = c(-pi, -pi/2, 0, pi/2, pi),
 axis(2, at = c(-pi, -pi/2, 0, pi/2, pi),
      labels = expression(-pi, -pi/2, 0, pi/2, pi))
 box()
+polygon(c(phig, rev(phig)), c(mu_lo, rev(mu_hi)), border = NA,
+        col = adjustcolor("#c0392b", 0.15))
 lines(phig, 2 * atan(1.6 * sin(phig)), col = "gray60", lwd = 1.6, lty = 2)
 lines(phig, mu_hat, col = "#c0392b", lwd = 2.6)
 legend("topleft", bty = "n", lwd = c(2.6, 1.6), lty = c(1, 2),
        col = c("#c0392b", "gray60"),
-       legend = c(expression(hat(mu)(varphi)), "truth"))
+       legend = c(expression(hat(mu)(varphi) %+-% "95% band"), "truth"))
 par(op)
 ```
 
@@ -138,8 +147,8 @@ depth3d <- function(x, y, z, pm) {
   p[, 3] / p[, 4]
 }
 
-draw_torus <- function(dat, mu_hat, phig, R = 1.9, r = 0.95,
-                       theta_view = 45, phi_view = 38) {
+draw_torus <- function(dat, mu_hat, phig, lo = NULL, hi = NULL,
+                       R = 1.9, r = 0.95, theta_view = 45, phi_view = 38) {
   op <- par(mar = c(0.2, 0.2, 0.2, 0.2))
   on.exit(par(op))
   lim <- R + r + 0.1
@@ -176,6 +185,32 @@ draw_torus <- function(dat, mu_hat, phig, R = 1.9, r = 0.95,
          cex = 0.4 + 0.25 * a[ord],
          col = sapply(a[ord], function(ai) adjustcolor("#2c5aa0", ai)))
 
+  ## 95% ribbon between lo(phi) and hi(phi): translucent quads painted in
+  ## depth order, subdivided across the band so it follows the tube
+  if (!is.null(lo) && !is.null(hi)) {
+    K <- 4
+    i0 <- seq_len(length(phig) - 1)
+    quads <- list()
+    for (k in seq_len(K)) {
+      t0 <- lo + (hi - lo) * (k - 1) / K
+      t1 <- lo + (hi - lo) * k / K
+      for (i in i0) {
+        th <- c(t0[i], t0[i + 1], t1[i + 1], t1[i])
+        ph <- c(phig[i], phig[i + 1], phig[i + 1], phig[i])
+        w <- torus_xyz(ph, th, R, r)
+        quads[[length(quads) + 1]] <-
+          list(p = trans3d(w$x, w$y, w$z, pm),
+               d = mean(depth3d(w$x, w$y, w$z, pm)))
+      }
+    }
+    dq <- vapply(quads, `[[`, numeric(1), "d")
+    aq <- 0.05 + 0.13 * (dq - min(dq)) / diff(range(dq))
+    for (j in order(dq)) {
+      polygon(quads[[j]]$p$x, quads[[j]]$p$y, border = NA,
+              col = adjustcolor("#c0392b", aq[j]))
+    }
+  }
+
   ## fitted mean-direction curve mu-hat(phi), winding over the tube --
   ## painted in depth order, far half faint
   w <- torus_xyz(phig, mu_hat, R, r)
@@ -192,13 +227,79 @@ draw_torus <- function(dat, mu_hat, phig, R = 1.9, r = 0.95,
   invisible(pm)
 }
 
-draw_torus(dat, mu_hat, phig)
+draw_torus(dat, mu_hat, phig, lo = mu_lo, hi = mu_hi)
 ```
 
 The red curve is the fitted conditional mean direction
-$\hat\mu(\varphi)$: a closed loop on the torus, rising over the tube
-where the response leads the predictor and dipping below where it lags,
-crossing the dashed equator at the two angles where $\mu = 0$.
+$\hat\mu(\varphi)$ with its 95% ribbon: a closed loop on the torus,
+rising over the tube where the response leads the predictor and dipping
+below where it lags, crossing the dashed equator at the two angles where
+$\mu = 0$. The ribbon widens where the data thin out.
+
+## What this model can and cannot represent
+
+A scope note before trusting it on your own C–C data. The `vmlss` mean
+map is $\mu(\varphi) = 2\arctan\{\eta(\varphi)\}$ with $\eta$ continuous
+and periodic, so the fitted curve (i) can never touch the antipode
+$\theta = \pm\pi$ of the response's coordinate origin, and (ii) has
+**winding number zero** — as $\varphi$ travels once around the ring, the
+curve must come back without wrapping the tube. The oscillation above is
+exactly that class. What it excludes is rotation-type association,
+$\theta \approx \varphi$ (wind direction at $t$ vs $t + \Delta$, paired
+before/after headings), where the response winds once per cycle of the
+predictor.
+
+That case belongs to the **projected normal family `pnlss()`**: the
+response is the angle of a bivariate normal with mean
+$(\mu_1(\varphi), \mu_2(\varphi))$, both components identity-linked, so
+the fitted direction $\mathrm{atan2}(\hat\mu_2, \hat\mu_1)$ has no branch
+cut and winds freely:
+
+```{r winding, fig.height = 5.8}
+set.seed(2)
+n <- 300
+phi2 <- runif(n, -pi, pi)
+# true direction = phi (winding number 1), constant concentration
+theta2 <- atan2(2 * sin(phi2) + rnorm(n), 2 * cos(phi2) + rnorm(n))
+dat2 <- data.frame(theta = theta2, phi = phi2)
+
+b2 <- gam(list(theta ~ s(phi, bs = "cc", k = 10),
+                     ~ s(phi, bs = "cc", k = 10)),
+          family = pnlss(), data = dat2, method = "REML",
+          knots = list(phi = c(-pi, pi)))
+
+pr2 <- predict(b2, newdata = data.frame(phi = phig), type = "response")
+dir_hat <- atan2(pr2[, 2], pr2[, 1])
+
+# 95% band for the direction by the delta method: the direction is a
+# function of BOTH linear predictors, so propagate the joint coefficient
+# covariance Vp through atan2(mu2, mu1) via the lpmatrix
+Xp <- predict(b2, newdata = data.frame(phi = phig), type = "lpmatrix")
+lpi <- attr(Xp, "lpi")
+X1 <- Xp[, lpi[[1]], drop = FALSE]
+X2 <- Xp[, lpi[[2]], drop = FALSE]
+V <- b2$Vp
+v11 <- rowSums((X1 %*% V[lpi[[1]], lpi[[1]]]) * X1)
+v22 <- rowSums((X2 %*% V[lpi[[2]], lpi[[2]]]) * X2)
+v12 <- rowSums((X1 %*% V[lpi[[1]], lpi[[2]]]) * X2)
+m1 <- pr2[, 1]; m2 <- pr2[, 2]; r2 <- m1^2 + m2^2
+se_dir <- sqrt(pmax(m2^2 * v11 + m1^2 * v22 - 2 * m1 * m2 * v12, 0)) / r2
+draw_torus(dat2, dir_hat, phig,
+           lo = dir_hat - 1.96 * se_dir, hi = dir_hat + 1.96 * se_dir)
+```
+
+The fitted curve now winds once around the tube while going once around
+the ring — a (1,1) curve on the torus, the shape `vmlss` cannot produce.
+(The band here is a delta-method interval: the direction depends on both
+linear predictors, so their joint posterior covariance is pushed through
+$\mathrm{atan2}(\mu_2, \mu_1)$ — two lines of `lpmatrix` algebra, and a
+taste of how inference works when the parameters are entangled.)
+(With `vmlss` you can still handle known winding $m$ by modelling the
+wrapped residual $\theta - m\varphi$ and adding $m\varphi$ back; `pnlss`
+just makes the detour unnecessary.) The trade-off runs the other way too:
+`vmlss` separates direction and concentration into interpretable
+parameters with their own smooths, while `pnlss` entangles them in
+$(\mu_1, \mu_2)$.
 
 ## Same model, same numbers, in Python
 

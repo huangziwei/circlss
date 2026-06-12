@@ -1,13 +1,13 @@
 # Circular-circular regression showcase: theta ~ s(phi, bs="cc") with
 # vmlss(), drawn on a torus (predictor angle around the ring, response
-# angle around the tube). Writes man/figures/README-torus.png; the same
-# code lives in vignettes/articles/circular-circular-regression.Rmd.
+# angle around the tube), with a 95% credible ribbon for the mean
+# direction. Writes man/figures/README-torus.png; the same code lives in
+# vignettes/articles/circular-circular-regression.Rmd.
 
 library(mgcv)
 library(circlss)
 
-## ---- simulate circular-circular data (same DGP family as the parity
-## battery's cyclic case) ----
+## ---- simulate circular-circular data ----
 rvm <- function(n, mu, kappa) {
   mu <- rep_len(mu, n); kappa <- rep_len(kappa, n); out <- numeric(n)
   for (i in seq_len(n)) {
@@ -41,8 +41,13 @@ b <- gam(list(theta ~ s(phi, bs = "cc", k = 10),
          knots = list(phi = c(-pi, pi)))
 
 phig <- seq(-pi, pi, length.out = 400)
-pred <- predict(b, newdata = data.frame(phi = phig), type = "response")
-mu_hat <- pred[, 1]
+## 95% band for mu: link-scale interval pushed through the monotone
+## tan-half link (Bayesian Vp standard errors, mgcv's default)
+prl <- predict(b, newdata = data.frame(phi = phig), type = "link",
+               se.fit = TRUE)
+mu_hat <- 2 * atan(prl$fit[, 1])
+mu_lo <- 2 * atan(prl$fit[, 1] - 1.96 * prl$se.fit[, 1])
+mu_hi <- 2 * atan(prl$fit[, 1] + 1.96 * prl$se.fit[, 1])
 
 ## ---- torus drawing helpers ----
 torus_xyz <- function(phi, theta, R = 1.9, r = 0.95) {
@@ -58,8 +63,8 @@ depth3d <- function(x, y, z, pm) {
   p[, 3] / p[, 4]
 }
 
-draw_torus <- function(dat, mu_hat, phig, R = 1.9, r = 0.95,
-                       theta_view = 45, phi_view = 38) {
+draw_torus <- function(dat, mu_hat, phig, lo = NULL, hi = NULL,
+                       R = 1.9, r = 0.95, theta_view = 45, phi_view = 38) {
   op <- par(mar = c(0.2, 0.2, 0.2, 0.2))
   on.exit(par(op))
   lim <- R + r + 0.1
@@ -93,11 +98,37 @@ draw_torus <- function(dat, mu_hat, phig, R = 1.9, r = 0.95,
   pt <- trans3d(w$x, w$y, w$z, pm)
   ord <- order(dp)  # paint far points first
   points(pt$x[ord], pt$y[ord], pch = 19,
-         cex = 0.4 + 0.25 * a[ord], col = adjustcolor("#2c5aa0", 1)[1] |>
-           (\(cc) sapply(a[ord], function(ai) adjustcolor(cc, ai)))())
+         cex = 0.4 + 0.25 * a[ord],
+         col = sapply(a[ord], function(ai) adjustcolor("#2c5aa0", ai)))
 
-  ## fitted mean-direction curve mu-hat(phi), winding over the tube:
-  ## far half faint, near half full -- painted in depth order
+  ## 95% ribbon between lo(phi) and hi(phi): translucent quads painted in
+  ## depth order, subdivided across the band so it follows the tube
+  if (!is.null(lo) && !is.null(hi)) {
+    K <- 4
+    i0 <- seq_len(length(phig) - 1)
+    i1 <- i0 + 1
+    quads <- list()
+    for (k in seq_len(K)) {
+      t0 <- lo + (hi - lo) * (k - 1) / K
+      t1 <- lo + (hi - lo) * k / K
+      for (i in i0) {
+        th <- c(t0[i], t0[i + 1], t1[i + 1], t1[i])
+        ph <- c(phig[i], phig[i + 1], phig[i + 1], phig[i])
+        w <- torus_xyz(ph, th, R, r)
+        quads[[length(quads) + 1]] <-
+          list(p = trans3d(w$x, w$y, w$z, pm),
+               d = mean(depth3d(w$x, w$y, w$z, pm)))
+      }
+    }
+    dq <- vapply(quads, `[[`, numeric(1), "d")
+    aq <- 0.05 + 0.13 * (dq - min(dq)) / diff(range(dq))
+    for (j in order(dq)) {
+      polygon(quads[[j]]$p$x, quads[[j]]$p$y, border = NA,
+              col = adjustcolor("#c0392b", aq[j]))
+    }
+  }
+
+  ## fitted mean-direction curve, painted in depth order, far half faint
   w <- torus_xyz(phig, mu_hat, R, r)
   dp <- depth3d(w$x, w$y, w$z, pm)
   cv <- trans3d(w$x, w$y, w$z, pm)
@@ -115,7 +146,8 @@ draw_torus <- function(dat, mu_hat, phig, R = 1.9, r = 0.95,
 ## ---- render ----
 dir.create("man/figures", showWarnings = FALSE, recursive = TRUE)
 png("man/figures/README-torus.png", width = 1500, height = 1180, res = 220)
-draw_torus(dat, mu_hat, phig)
+draw_torus(dat, mu_hat, phig, lo = mu_lo, hi = mu_hi)
 invisible(dev.off())
 cat("wrote man/figures/README-torus.png\n")
-cat("fit: conv =", b$outer.info$conv, " edf =", round(sum(b$edf), 2), "\n")
+cat("fit: conv =", b$outer.info$conv, " edf =", round(sum(b$edf), 2),
+    " band width range:", paste(round(range(mu_hi - mu_lo), 3), collapse=".."), "\n")

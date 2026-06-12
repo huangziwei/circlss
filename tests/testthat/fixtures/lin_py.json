@@ -1,5 +1,6 @@
 {
  "case": "lin",
+ "family": "vmlss",
  "formulas": [
   "y ~ x",
   "~ x"
