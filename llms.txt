@@ -14,24 +14,25 @@ the ring, response angle around the tube, and the fitted mean direction
 `mu(phi)` (red) winding over the surface —
 `gam(list(theta ~ s(phi, bs="cc"), ~ s(phi, bs="cc")), family = vmlss())`.
 Code in [the torus
-article](https://circstat.github.io/circlss/articles/circular-circular-regression.html).*
+article](https://huangziwei.github.io/circlss/articles/circular-circular-regression.html).*
 
-Documentation: <https://circstat.github.io/circlss/>
+Documentation: <https://huangziwei.github.io/circlss/>
 
 v0.0.1 ships one family, the von Mises
-[`vmlss()`](https://circstat.github.io/circlss/reference/vmlss.md) — the
-reference implementation for the architecture. The remaining circular
-families (wrapped Cauchy, projected normal, Jones–Pewsey, sine-skewed
-JP, cardioid, Cartwright, wrapped normal, Kato–Jones) follow in v0.1.0,
-ported from [pycircstat2](https://github.com/circstat/pycircstat2) by
-the same recipe.
+[`vmlss()`](https://huangziwei.github.io/circlss/reference/vmlss.md) —
+the reference implementation for the architecture. The remaining
+circular families (wrapped Cauchy, projected normal, Jones–Pewsey,
+sine-skewed JP, cardioid, Cartwright, wrapped normal, Kato–Jones) follow
+in v0.1.0, ported from
+[pycircstat2](https://github.com/circstat/pycircstat2) by the same
+recipe.
 
 ## Install
 
 ``` r
 
 # released versions: not yet on CRAN; install from GitHub
-remotes::install_github("circstat/circlss")
+remotes::install_github("huangziwei/circlss")
 
 # or from a local checkout
 install.packages("path/to/circlss", repos = NULL, type = "source")
@@ -41,8 +42,8 @@ Requires `mgcv >= 1.9.4` (R \>= 4.5 recommended).
 
 ## Use
 
-[`vmlss()`](https://circstat.github.io/circlss/reference/vmlss.md) is an
-mgcv *general family*: pass
+[`vmlss()`](https://huangziwei.github.io/circlss/reference/vmlss.md) is
+an mgcv *general family*: pass
 [`gam()`](https://rdrr.io/pkg/mgcv/man/gam.html) a list of two formulas,
 one per distribution parameter — the mean direction (Fisher–Lee tan-half
 link) and the log concentration.
@@ -102,7 +103,7 @@ battery is asserted hermetically in
 mgcv general families for angular responses: one linear predictor — and
 so one formula, with smooths — per distribution parameter.
 
-- [`vmlss()`](https://circstat.github.io/circlss/reference/vmlss.md) :
+- [`vmlss()`](https://huangziwei.github.io/circlss/reference/vmlss.md) :
   von Mises location-scale family for mgcv GAMs
 
 # Articles
@@ -110,4 +111,4 @@ so one formula, with smooths — per distribution parameter.
 ### Worked examples
 
 - [Circular–circular regression on the
-  torus](https://circstat.github.io/circlss/articles/circular-circular-regression.md):
+  torus](https://huangziwei.github.io/circlss/articles/circular-circular-regression.md):

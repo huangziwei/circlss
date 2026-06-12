@@ -44,7 +44,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/circstat/circlss/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/huangziwei/circlss/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -58,15 +58,15 @@
 <p>Circular-response location-scale families for <a href="https://cran.r-project.org/package=mgcv" class="external-link">mgcv</a>’s GAM engine: fit penalized-spline regression models where the <em>response</em> is an angle, with every distribution parameter getting its own smooth.</p>
 <p align="center">
 <img src="reference/figures/README-torus.png" width="70%" alt="Circular-circular regression drawn on a torus: data points and the fitted mean-direction curve winding over the tube"></p>
-<p><em>A circular–circular fit on its natural canvas: predictor angle around the ring, response angle around the tube, and the fitted mean direction <code>mu(phi)</code> (red) winding over the surface — <code>gam(list(theta ~ s(phi, bs="cc"), ~ s(phi, bs="cc")), family = vmlss())</code>. Code in <a href="https://circstat.github.io/circlss/articles/circular-circular-regression.html">the torus article</a>.</em></p>
-<p>Documentation: <a href="https://circstat.github.io/circlss/" class="uri">https://circstat.github.io/circlss/</a></p>
+<p><em>A circular–circular fit on its natural canvas: predictor angle around the ring, response angle around the tube, and the fitted mean direction <code>mu(phi)</code> (red) winding over the surface — <code>gam(list(theta ~ s(phi, bs="cc"), ~ s(phi, bs="cc")), family = vmlss())</code>. Code in <a href="https://huangziwei.github.io/circlss/articles/circular-circular-regression.html">the torus article</a>.</em></p>
+<p>Documentation: <a href="https://huangziwei.github.io/circlss/" class="uri">https://huangziwei.github.io/circlss/</a></p>
 <p>v0.0.1 ships one family, the von Mises <code><a href="reference/vmlss.html">vmlss()</a></code> — the reference implementation for the architecture. The remaining circular families (wrapped Cauchy, projected normal, Jones–Pewsey, sine-skewed JP, cardioid, Cartwright, wrapped normal, Kato–Jones) follow in v0.1.0, ported from <a href="https://github.com/circstat/pycircstat2" class="external-link">pycircstat2</a> by the same recipe.</p>
 <div class="section level2">
 <h2 id="install">Install<a class="anchor" aria-label="anchor" href="#install"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># released versions: not yet on CRAN; install from GitHub</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"circstat/circlss"</span><span class="op">)</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"huangziwei/circlss"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># or from a local checkout</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"path/to/circlss"</span>, repos <span class="op">=</span> <span class="cn">NULL</span>, type <span class="op">=</span> <span class="st">"source"</span><span class="op">)</span></span></code></pre></div>
@@ -78,7 +78,7 @@
 <p><code><a href="reference/vmlss.html">vmlss()</a></code> is an mgcv <em>general family</em>: pass <code><a href="https://rdrr.io/pkg/mgcv/man/gam.html" class="external-link">gam()</a></code> a list of two formulas, one per distribution parameter — the mean direction (Fisher–Lee tan-half link) and the log concentration.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">mgcv</span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://circstat.github.io/circlss/">circlss</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://huangziwei.github.io/circlss/">circlss</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># distributional von Mises: mu and log-kappa each smoothed, REML selection</span></span>
 <span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/mgcv/man/gam.html" class="external-link">gam</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">theta</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/pkg/mgcv/man/s.html" class="external-link">s</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>,    <span class="co"># location, tan-half link</span></span>
@@ -106,8 +106,8 @@
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/circstat/circlss/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/circstat/circlss/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/huangziwei/circlss/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/huangziwei/circlss/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 

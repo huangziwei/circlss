@@ -4,7 +4,7 @@
 
 Initial release.
 
-- [`vmlss()`](https://circstat.github.io/circlss/reference/vmlss.md):
+- [`vmlss()`](https://huangziwei.github.io/circlss/reference/vmlss.md):
   von Mises location-scale general family for
   [`mgcv::gam()`](https://rdrr.io/pkg/mgcv/man/gam.html) — a Fisher–Lee
   tan-half link for the mean direction and a log link for the
