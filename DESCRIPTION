@@ -24,5 +24,5 @@ Suggests:
     knitr,
     rmarkdown
 Config/testthat/edition: 3
-URL: https://circstat.github.io/circlss/, https://github.com/circstat/circlss
-BugReports: https://github.com/circstat/circlss/issues
+URL: https://huangziwei.github.io/circlss/, https://github.com/huangziwei/circlss
+BugReports: https://github.com/huangziwei/circlss/issues

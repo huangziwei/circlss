@@ -13,9 +13,9 @@ angle, with every distribution parameter getting its own smooth.
 ring, response angle around the tube, and the fitted mean direction
 `mu(phi)` (red) winding over the surface — `gam(list(theta ~ s(phi,
 bs="cc"), ~ s(phi, bs="cc")), family = vmlss())`. Code in
-[the torus article](https://circstat.github.io/circlss/articles/circular-circular-regression.html).*
+[the torus article](https://huangziwei.github.io/circlss/articles/circular-circular-regression.html).*
 
-Documentation: <https://circstat.github.io/circlss/>
+Documentation: <https://huangziwei.github.io/circlss/>
 
 v0.0.1 ships one family, the von Mises `vmlss()` — the reference
 implementation for the architecture. The remaining circular families
@@ -27,7 +27,7 @@ Cartwright, wrapped normal, Kato–Jones) follow in v0.1.0, ported from
 
 ```r
 # released versions: not yet on CRAN; install from GitHub
-remotes::install_github("circstat/circlss")
+remotes::install_github("huangziwei/circlss")
 
 # or from a local checkout
 install.packages("path/to/circlss", repos = NULL, type = "source")
