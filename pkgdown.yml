@@ -1,0 +1,9 @@
+pandoc: 3.8.3
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  articles/circular-circular-regression: circular-circular-regression.html
+last_built: 2026-06-12T11:36Z
+urls:
+  reference: https://circstat.github.io/circlss/reference
+  article: https://circstat.github.io/circlss/articles
