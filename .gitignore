@@ -1,0 +1,31 @@
+# OS / tooling
+.DS_Store
+.claude/
+
+# local install library (R CMD INSTALL target for this checkout)
+.Rlib/
+
+# untracked dev area
+dev/parity/data/ 
+dev/parity/out/
+
+# R session artifacts
+.Rhistory
+.Rapp.history
+.RData
+.Ruserdata
+
+# build & check artifacts (root-anchored: R CMD build/check write to cwd)
+/*.tar.gz
+/*.Rcheck/
+
+# RStudio
+.Rproj.user/
+
+# vignette / pkgdown build output (will matter from the vignette milestone)
+inst/doc/
+/Meta/
+docs/
+
+# Python bytecode (dev/parity scripts, if dev/ ever becomes tracked)
+__pycache__/

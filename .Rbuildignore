@@ -1,0 +1,7 @@
+^\.claude$
+^dev$
+^\.Rlib$
+^circlss\.Rcheck$
+^.*\.tar\.gz$
+^\.Rproj\.user$
+^.*\.Rproj$

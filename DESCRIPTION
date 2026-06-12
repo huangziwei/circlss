@@ -1,0 +1,25 @@
+Package: circlss
+Type: Package
+Title: Circular-Response Location-Scale Families for 'mgcv'
+Version: 0.0.1
+Authors@R: person("Ziwei", "Huang", email = "huang-ziwei@outlook.com",
+    role = c("aut", "cre"))
+Description: Circular-response distributional families for the 'mgcv'
+    general family interface, so that gam() can fit penalized-spline
+    regression models (GAM/GAMLSS) with an angular response. Provides the
+    von Mises family vmlss(), with a Fisher-Lee tan-half link for the mean
+    direction and a log link for the concentration, each modelled by its
+    own linear predictor. Log-likelihood derivatives to fourth order
+    support full Newton REML smoothing-parameter selection. Numerical
+    results are differentially tested against the 'pycircstat2' Python
+    package, whose derivative implementations this package transcribes.
+License: GPL-3
+Encoding: UTF-8
+Imports:
+    mgcv (>= 1.9.4),
+    stats
+Suggests:
+    testthat (>= 3.0.0),
+    jsonlite
+Config/testthat/edition: 3
+URL: https://github.com/circstat/circlss
