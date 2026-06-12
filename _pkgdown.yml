@@ -1,0 +1,23 @@
+url: https://circstat.github.io/circlss/
+
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#2c5aa0"
+
+home:
+  title: circlss — circular-response families for mgcv
+
+reference:
+- title: Response families
+  desc: >
+    mgcv general families for angular responses: one linear predictor —
+    and so one formula, with smooths — per distribution parameter.
+  contents:
+  - vmlss
+
+articles:
+- title: Worked examples
+  navbar: ~
+  contents:
+  - articles/circular-circular-regression

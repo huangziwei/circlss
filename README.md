@@ -4,6 +4,19 @@ Circular-response location-scale families for [mgcv](https://cran.r-project.org/
 GAM engine: fit penalized-spline regression models where the *response* is an
 angle, with every distribution parameter getting its own smooth.
 
+<p align="center">
+<img src="man/figures/README-torus.png" width="70%"
+     alt="Circular-circular regression drawn on a torus: data points and the fitted mean-direction curve winding over the tube" />
+</p>
+
+*A circular–circular fit on its natural canvas: predictor angle around the
+ring, response angle around the tube, and the fitted mean direction
+`mu(phi)` (red) winding over the surface — `gam(list(theta ~ s(phi,
+bs="cc"), ~ s(phi, bs="cc")), family = vmlss())`. Code in
+[the torus article](https://circstat.github.io/circlss/articles/circular-circular-regression.html).*
+
+Documentation: <https://circstat.github.io/circlss/>
+
 v0.0.1 ships one family, the von Mises `vmlss()` — the reference
 implementation for the architecture. The remaining circular families
 (wrapped Cauchy, projected normal, Jones–Pewsey, sine-skewed JP, cardioid,
@@ -13,9 +26,11 @@ Cartwright, wrapped normal, Kato–Jones) follow in v0.1.0, ported from
 ## Install
 
 ```r
-# from a local checkout
+# released versions: not yet on CRAN; install from GitHub
+remotes::install_github("circstat/circlss")
+
+# or from a local checkout
 install.packages("path/to/circlss", repos = NULL, type = "source")
-# or: R CMD INSTALL circlss
 ```
 
 Requires `mgcv >= 1.9.4` (R >= 4.5 recommended).
