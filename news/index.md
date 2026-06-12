@@ -1,5 +1,22 @@
 # Changelog
 
+## circlss 0.0.3
+
+- [`wclss()`](https://huangziwei.github.io/circlss/reference/wclss.md):
+  wrapped Cauchy family — the heavy-tailed counterpart of the von Mises
+  (sharply peaked, fat circular tails; the robust choice under angular
+  outliers). Tan-half location link, logit-linked mean resultant length
+  `rho`; full fourth-order derivatives (Newton REML and EFS). The
+  log-density uses the cancellation-free denominator
+  `(1-rho)^2 + 4*rho*sin^2(d/2)`, exact as `rho -> 1`.
+- The differential battery grows to twelve cases; all green. One honest
+  reclassification: `wc_cyclic` sits in the EIGEN tolerance class
+  despite its deterministic cc basis, because the heavy-tailed
+  likelihood makes the REML surface flat at the selected lambda — both
+  engines agree on the criterion to ~1e-8 (same optimum) while
+  stopping-point noise leaves ~1e-5 in lambda/edf/loglik. TIGHT requires
+  both a deterministic basis and a well-conditioned criterion.
+
 ## circlss 0.0.2
 
 - [`pnlss()`](https://huangziwei.github.io/circlss/reference/pnlss.md):

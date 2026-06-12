@@ -85,9 +85,9 @@ summary(b)
 #> 
 #> Formula:
 #> y ~ s(x)
-#> <environment: 0x559c74f4d588>
+#> <environment: 0x55bbef65fe50>
 #> ~s(x)
-#> <environment: 0x559c74f4d588>
+#> <environment: 0x55bbef65fe50>
 #> 
 #> Parametric coefficients:
 #>               Estimate Std. Error z value Pr(>|z|)    

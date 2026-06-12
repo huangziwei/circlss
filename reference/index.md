@@ -9,3 +9,5 @@ so one formula, with smooths — per distribution parameter.
   von Mises location-scale family for mgcv GAMs
 - [`pnlss()`](https://huangziwei.github.io/circlss/reference/pnlss.md) :
   Projected normal location family for mgcv GAMs
+- [`wclss()`](https://huangziwei.github.io/circlss/reference/wclss.md) :
+  Wrapped Cauchy location-scale family for mgcv GAMs

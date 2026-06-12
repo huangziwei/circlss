@@ -26,18 +26,21 @@ for all three response–predictor geometries:
 [circular–circular](https://huangziwei.github.io/circlss/articles/circular-circular-regression.html)
 (torus).
 
-Two families so far: the von Mises
+Three families so far: the von Mises
 [`vmlss()`](https://huangziwei.github.io/circlss/reference/vmlss.md)
 (tan-half location link, log concentration — the reference
-implementation) and the projected normal
+implementation), the projected normal
 [`pnlss()`](https://huangziwei.github.io/circlss/reference/pnlss.md)
 (identity-linked Cartesian mean components — no branch cut, so the
 fitted direction can sweep and *wind* around the full circle, the
-natural choice for circular–circular regression). The remaining circular
-families (wrapped Cauchy, Jones–Pewsey, sine-skewed JP, cardioid,
-Cartwright, wrapped normal, Kato–Jones) follow in v0.1.0, ported from
+natural choice for circular–circular regression), and the wrapped Cauchy
+[`wclss()`](https://huangziwei.github.io/circlss/reference/wclss.md)
+(heavy-tailed counterpart of the von Mises, logit-linked mean resultant
+length — the robust choice under angular outliers). The remaining
+families (wrapped normal, Jones–Pewsey, sine-skewed JP, cardioid,
+Cartwright, Kato–Jones) arrive one per 0.0.x release, ported from
 [pycircstat2](https://github.com/circstat/pycircstat2) by the same
-recipe.
+recipe; v0.1.0 is the externally-anchored validation release.
 
 ## Install
 

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">circlss</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,6 +38,12 @@
       <small>Source: <a href="https://github.com/huangziwei/circlss/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.0.3" id="circlss-003">circlss 0.0.3<a class="anchor" aria-label="anchor" href="#circlss-003"></a></h2>
+<ul><li>
+<code><a href="../reference/wclss.html">wclss()</a></code>: wrapped Cauchy family — the heavy-tailed counterpart of the von Mises (sharply peaked, fat circular tails; the robust choice under angular outliers). Tan-half location link, logit-linked mean resultant length <code>rho</code>; full fourth-order derivatives (Newton REML and EFS). The log-density uses the cancellation-free denominator <code>(1-rho)^2 + 4*rho*sin^2(d/2)</code>, exact as <code>rho -&gt; 1</code>.</li>
+<li>The differential battery grows to twelve cases; all green. One honest reclassification: <code>wc_cyclic</code> sits in the EIGEN tolerance class despite its deterministic cc basis, because the heavy-tailed likelihood makes the REML surface flat at the selected lambda — both engines agree on the criterion to ~1e-8 (same optimum) while stopping-point noise leaves ~1e-5 in lambda/edf/loglik. TIGHT requires both a deterministic basis and a well-conditioned criterion.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.2" id="circlss-002">circlss 0.0.2<a class="anchor" aria-label="anchor" href="#circlss-002"></a></h2>
 <ul><li>
