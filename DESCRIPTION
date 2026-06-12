@@ -1,16 +1,18 @@
 Package: circlss
 Type: Package
 Title: Circular-Response Location-Scale Families for 'mgcv'
-Version: 0.0.2
+Version: 0.0.3
 Authors@R: person("Ziwei", "Huang", email = "huang-ziwei@outlook.com",
     role = c("aut", "cre"))
 Description: Circular-response distributional families for the 'mgcv'
     general family interface, so that gam() can fit penalized-spline
     regression models (GAM/GAMLSS) with an angular response. Provides the
     von Mises family vmlss(), with a Fisher-Lee tan-half link for the mean
-    direction and a log link for the concentration, and the projected
+    direction and a log link for the concentration, the projected
     normal family pnlss(), whose identity-linked Cartesian mean components
-    let the fitted direction sweep and wind around the full circle. Every
+    let the fitted direction sweep and wind around the full circle, and
+    the wrapped Cauchy family wclss(), the heavy-tailed counterpart of the
+    von Mises with a logit-linked mean resultant length. Every
     distribution parameter is modelled by its own linear predictor;
     log-likelihood derivatives to fourth order support full Newton REML
     smoothing-parameter selection. Numerical results are differentially

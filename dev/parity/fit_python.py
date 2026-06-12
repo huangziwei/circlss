@@ -12,7 +12,7 @@ import pathlib
 import numpy as np
 import polars as pl
 
-from pycircstat2.distributions import CircularLL, pnlss, vmlss
+from pycircstat2.distributions import CircularLL, pnlss, vmlss, wclss
 from pycircstat2.regression import CLRegression
 
 # ---------------------------------------------------------------------------
@@ -87,9 +87,31 @@ CASES = {
         "knots": None, "var": "x", "grid": np.linspace(0.0, 1.0, 101),
         "family": "pnlss",
     },
+    # wrapped Cauchy battery (v0.0.3): Tier 1, Newton-REML parity
+    "wc_lin": {
+        "formulas": ["y ~ x", "~ x"],
+        "knots": None, "var": "x", "grid": np.linspace(0.0, 1.0, 101),
+        "family": "wclss",
+    },
+    "wc_smooth": {
+        "formulas": ["y ~ s(x, k=10)", "~ s(x, k=10)"],
+        "knots": None, "var": "x", "grid": np.linspace(0.0, 1.0, 101),
+        "family": "wclss",
+    },
+    "wc_cyclic": {
+        "formulas": ["y ~ s(phi, bs='cc', k=10)", "~ s(phi, bs='cc', k=10)"],
+        "knots": {"phi": [-np.pi, np.pi]}, "var": "phi",
+        "grid": np.linspace(-np.pi, np.pi, 101),
+        "family": "wclss",
+    },
+    "wc_small": {
+        "formulas": ["y ~ s(x, k=8)", "~ s(x, k=8)"],
+        "knots": None, "var": "x", "grid": np.linspace(0.0, 1.0, 101),
+        "family": "wclss",
+    },
 }
 
-FAMILIES = {"vmlss": vmlss, "pnlss": pnlss}
+FAMILIES = {"vmlss": vmlss, "pnlss": pnlss, "wclss": wclss}
 
 for name, spec in CASES.items():
     fam_name = spec.get("family", "vmlss")
@@ -121,6 +143,9 @@ for name, spec in CASES.items():
     if fam_name == "vmlss":
         out["mu_grid"] = [float(v) for v in pp["mu"]]
         out["kappa_grid"] = [float(v) for v in pp["kappa"]]
+    elif fam_name == "wclss":
+        out["mu_grid"] = [float(v) for v in pp["mu"]]
+        out["rho_grid"] = [float(v) for v in pp["rho"]]
     else:  # pnlss: Cartesian mean components + derived direction
         out["mu1_grid"] = [float(v) for v in pp["mu1"]]
         out["mu2_grid"] = [float(v) for v in pp["mu2"]]

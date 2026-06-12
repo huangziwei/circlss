@@ -33,7 +33,8 @@ import sys
 
 HERE = pathlib.Path(__file__).parent
 CASES = ["lin", "smooth", "cyclic", "small",
-         "pn_lin", "pn_smooth", "pn_cyclic", "pn_small"]
+         "pn_lin", "pn_smooth", "pn_cyclic", "pn_small",
+         "wc_lin", "wc_smooth", "wc_cyclic", "wc_small"]
 
 # tolerance classes, pinned at ~10x the noise observed at v0.0.1/v0.0.2
 # (deterministic-basis cases observed 1e-14..1e-8 -- pn_lin's flatter
@@ -52,7 +53,14 @@ EIGEN = {  # thin-plate bases: eigen-decomposed, float path differs
 }
 TOL = {"lin": TIGHT, "smooth": EIGEN, "cyclic": TIGHT, "small": EIGEN,
        "pn_lin": TIGHT, "pn_smooth": EIGEN, "pn_cyclic": TIGHT,
-       "pn_small": EIGEN}
+       "pn_small": EIGEN,
+       "wc_lin": TIGHT, "wc_smooth": EIGEN, "wc_cyclic": EIGEN,
+       "wc_small": EIGEN}
+# wc_cyclic is EIGEN despite the deterministic cc basis: its REML surface
+# is flat at the selected lambda (~100; heavy-tailed WC likelihood), so
+# optimizer stopping points wander ~1e-5 in lambda/edf/loglik while the
+# criterion itself agrees to ~1e-8 -- same optimum, flatness noise. TIGHT
+# requires BOTH a deterministic basis and a well-conditioned criterion.
 
 
 def wrap_diff(a, b):
@@ -105,6 +113,13 @@ def compare(case):
               max(abs(a - b) / abs(b)
                   for a, b in zip(py["kappa_grid"], rr["kappa_grid"])),
               tol["kappa_grid_rel"])
+    elif py.get("family") == "wclss":
+        check("mu_grid", max(wrap_diff(a, b)
+                             for a, b in zip(py["mu_grid"], rr["mu_grid"])),
+              tol["mu_grid"])
+        check("rho_grid", max(abs(a - b)
+                              for a, b in zip(py["rho_grid"], rr["rho_grid"])),
+              tol["mu_grid"])
     else:  # pnlss: Cartesian components (abs) + derived direction (wrapped)
         for comp in ("mu1_grid", "mu2_grid"):
             check(comp, max(abs(a - b)

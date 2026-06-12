@@ -47,10 +47,27 @@ cases <- list(
   pn_small = list(
     formula = list(y ~ s(x, k = 8), ~ s(x, k = 8)), family = "pnlss",
     knots = NULL, var = "x", grid = seq(0, 1, length.out = 101)
+  ),
+  wc_lin = list(
+    formula = list(y ~ x, ~ x), family = "wclss",
+    knots = NULL, var = "x", grid = seq(0, 1, length.out = 101)
+  ),
+  wc_smooth = list(
+    formula = list(y ~ s(x, k = 10), ~ s(x, k = 10)), family = "wclss",
+    knots = NULL, var = "x", grid = seq(0, 1, length.out = 101)
+  ),
+  wc_cyclic = list(
+    formula = list(y ~ s(phi, bs = "cc", k = 10), ~ s(phi, bs = "cc", k = 10)),
+    family = "wclss", knots = list(phi = c(-pi, pi)), var = "phi",
+    grid = seq(-pi, pi, length.out = 101)
+  ),
+  wc_small = list(
+    formula = list(y ~ s(x, k = 8), ~ s(x, k = 8)), family = "wclss",
+    knots = NULL, var = "x", grid = seq(0, 1, length.out = 101)
   )
 )
 
-families <- list(vmlss = vmlss, pnlss = pnlss)
+families <- list(vmlss = vmlss, pnlss = pnlss, wclss = wclss)
 
 for (nm in names(cases)) {
   cs <- cases[[nm]]
@@ -84,6 +101,9 @@ for (nm in names(cases)) {
   if (fam_name == "vmlss") {
     out$mu_grid <- unname(pr[, 1])
     out$kappa_grid <- unname(pr[, 2])
+  } else if (fam_name == "wclss") {
+    out$mu_grid <- unname(pr[, 1])
+    out$rho_grid <- unname(pr[, 2])
   } else {
     out$mu1_grid <- unname(pr[, 1])
     out$mu2_grid <- unname(pr[, 2])

@@ -1,3 +1,4 @@
 export(pnlss)
 export(vmlss)
+export(wclss)
 importFrom(stats, pnorm)

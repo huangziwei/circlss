@@ -93,3 +93,44 @@ x = rng.uniform(0.0, 1.0, n)
 write("pn_small", {"y": rpn(1.8 * np.sin(2.0 * np.pi * x) + 0.5,
                             1.2 * np.cos(2.0 * np.pi * x) - 0.3),
                    "x": x})
+
+# ---- wrapped Cauchy battery (v0.0.3) -- appended AFTER the pn cases so
+# the rng stream above is unchanged. Exact sampler: the wrapped Cauchy is
+# the wrapping of a Cauchy with scale gamma = -log(rho).
+
+
+def rwc(mu, rho):
+    th = mu + (-np.log(rho)) * rng.standard_cauchy(np.shape(mu))
+    return np.arctan2(np.sin(th), np.cos(th))
+
+
+def logistic(e):
+    return 1.0 / (1.0 + np.exp(-e))
+
+
+# I. linear covariate in both linear predictors
+n = 256
+x = rng.uniform(0.0, 1.0, n)
+write("wc_lin", {"y": rwc(2.0 * np.arctan(-0.3 + 1.1 * x),
+                          logistic(0.2 + 0.9 * x)), "x": x})
+
+# J. smooth covariate, thin-plate basis
+n = 256
+x = rng.uniform(0.0, 1.0, n)
+write("wc_smooth", {"y": rwc(2.0 * np.arctan(1.4 * np.sin(2.0 * np.pi * x)),
+                             logistic(0.5 + 0.8 * np.cos(2.0 * np.pi * x))),
+                    "x": x})
+
+# K. circular covariate through cyclic smooths
+n = 300
+phi = rng.uniform(-np.pi, np.pi, n)
+write("wc_cyclic", {"y": rwc(2.0 * np.arctan(0.9 * np.sin(phi)),
+                             logistic(0.6 + 0.6 * np.cos(phi))),
+                    "phi": phi})
+
+# L. small-n variant of J
+n = 80
+x = rng.uniform(0.0, 1.0, n)
+write("wc_small", {"y": rwc(2.0 * np.arctan(1.4 * np.sin(2.0 * np.pi * x)),
+                            logistic(0.5 + 0.8 * np.cos(2.0 * np.pi * x))),
+                   "x": x})
