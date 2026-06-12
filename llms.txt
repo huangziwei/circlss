@@ -17,7 +17,14 @@ the torus —
 Code in [the torus
 article](https://huangziwei.github.io/circlss/articles/circular-circular-regression.html).*
 
-Documentation: <https://huangziwei.github.io/circlss/>
+Documentation: <https://huangziwei.github.io/circlss/> — worked examples
+for all three response–predictor geometries:
+[circular–linear](https://huangziwei.github.io/circlss/articles/circular-linear-regression.html)
+(cylinder),
+[linear–circular](https://huangziwei.github.io/circlss/articles/linear-circular-regression.html)
+(cylinder, mgcv-native),
+[circular–circular](https://huangziwei.github.io/circlss/articles/circular-circular-regression.html)
+(torus).
 
 Two families so far: the von Mises
 [`vmlss()`](https://huangziwei.github.io/circlss/reference/vmlss.md)
@@ -130,5 +137,9 @@ so one formula, with smooths — per distribution parameter.
 
 ### Worked examples
 
+- [Circular–linear regression on the
+  cylinder](https://huangziwei.github.io/circlss/articles/circular-linear-regression.md):
+- [Linear–circular regression on the
+  cylinder](https://huangziwei.github.io/circlss/articles/linear-circular-regression.md):
 - [Circular–circular regression on the
   torus](https://huangziwei.github.io/circlss/articles/circular-circular-regression.md):

@@ -1,5 +1,11 @@
 # Circular–circular regression on the torus
 
+*One of three response–predictor geometries:
+[C–L](https://huangziwei.github.io/circlss/articles/circular-linear-regression.md)
+·
+[L–C](https://huangziwei.github.io/circlss/articles/linear-circular-regression.md)
+· **C–C**.*
+
 A circular–circular (C–C) regression has an angle on both sides: the
 response $`\theta`$ and the predictor $`\varphi`$ each live on the
 circle. In `circlss` the predictor side is mgcv-native — the covariate

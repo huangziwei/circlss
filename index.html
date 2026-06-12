@@ -35,7 +35,9 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/circular-circular-regression.html">Circular–circular regression on the torus</a></li>
+<li><a class="dropdown-item" href="articles/circular-linear-regression.html">Circular–linear regression on the cylinder</a></li>
+    <li><a class="dropdown-item" href="articles/linear-circular-regression.html">Linear–circular regression on the cylinder</a></li>
+    <li><a class="dropdown-item" href="articles/circular-circular-regression.html">Circular–circular regression on the torus</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -59,7 +61,7 @@
 <p align="center">
 <img src="reference/figures/README-torus.png" width="70%" alt="Circular-circular regression drawn on a torus: data points and the fitted mean-direction curve, with its 95% ribbon, winding once around the tube"></p>
 <p><em>Circular–circular regression on its natural canvas: predictor angle around the ring, response angle around the tube, and the fitted mean direction (red, with a 95% delta-method ribbon) <strong>winding</strong> once around the torus — <code>gam(list(theta ~ s(phi, bs="cc"), ~ s(phi, bs="cc")), family = pnlss())</code>. Code in <a href="https://huangziwei.github.io/circlss/articles/circular-circular-regression.html">the torus article</a>.</em></p>
-<p>Documentation: <a href="https://huangziwei.github.io/circlss/" class="uri">https://huangziwei.github.io/circlss/</a></p>
+<p>Documentation: <a href="https://huangziwei.github.io/circlss/" class="uri">https://huangziwei.github.io/circlss/</a> — worked examples for all three response–predictor geometries: <a href="https://huangziwei.github.io/circlss/articles/circular-linear-regression.html">circular–linear</a> (cylinder), <a href="https://huangziwei.github.io/circlss/articles/linear-circular-regression.html">linear–circular</a> (cylinder, mgcv-native), <a href="https://huangziwei.github.io/circlss/articles/circular-circular-regression.html">circular–circular</a> (torus).</p>
 <p>Two families so far: the von Mises <code><a href="reference/vmlss.html">vmlss()</a></code> (tan-half location link, log concentration — the reference implementation) and the projected normal <code><a href="reference/pnlss.html">pnlss()</a></code> (identity-linked Cartesian mean components — no branch cut, so the fitted direction can sweep and <em>wind</em> around the full circle, the natural choice for circular–circular regression). The remaining circular families (wrapped Cauchy, Jones–Pewsey, sine-skewed JP, cardioid, Cartwright, wrapped normal, Kato–Jones) follow in v0.1.0, ported from <a href="https://github.com/circstat/pycircstat2" class="external-link">pycircstat2</a> by the same recipe.</p>
 <div class="section level2">
 <h2 id="install">Install<a class="anchor" aria-label="anchor" href="#install"></a>
