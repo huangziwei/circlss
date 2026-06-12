@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">circlss</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,6 +37,12 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.0.2" id="circlss-002">circlss 0.0.2<a class="anchor" aria-label="anchor" href="#circlss-002"></a></h2>
+<ul><li>
+<code><a href="../reference/pnlss.html">pnlss()</a></code>: projected normal family — the response is the angle of a bivariate normal with mean <code>(mu1, mu2)</code> and identity covariance; both Cartesian mean components carry identity links and their own linear predictors. No tan-half branch cut: the fitted mean direction can cross any angle and can <em>wind</em> around the circle, making <code>pnlss</code> the natural family for circular–circular regression with rotation-type association (<code>theta ~ phi</code>). Full fourth-order derivatives (Newton REML and EFS).</li>
+<li>The differential battery against pycircstat2 doubles to eight cases: the four <code>pnlss</code> cases (parametric, thin plate, cyclic-with-winding, small-n) agree to the same tolerance classes as <code>vmlss</code> — near machine precision on deterministic bases (the winding cyclic case to ~1e-10), optimizer-stopping tolerance on thin-plate ones. The TIGHT class’s coefficient/curve thresholds were recalibrated from 1e-9 to 1e-7 to cover the flatter parametric projected-normal likelihood (log-likelihood still agrees to 1e-13 there).</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.1" id="circlss-001">circlss 0.0.1<a class="anchor" aria-label="anchor" href="#circlss-001"></a></h2>
 <p>Initial release.</p>
 <ul><li>
@@ -44,7 +50,8 @@
 <li>Differentially tested against <a href="https://github.com/circstat/pycircstat2" class="external-link">pycircstat2</a>: identical models on identical data (Newton-REML both sides) agree to machine precision for parametric and cyclic-spline fits, and to optimizer stopping tolerance (~3e-5, fitted curves within 2e-6 radians) for thin-plate fits. Tolerances are pinned in the test suite.</li>
 <li>The derivative algebra is transcribed from pycircstat2’s finite-difference-verified implementations, with R-side FD checks of the link chain and the assembled gradient/Hessian.</li>
 </ul></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

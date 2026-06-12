@@ -69,8 +69,6 @@ Statistical Association 111, 1548-1575.
 
 ``` r
 library(mgcv)
-#> Loading required package: nlme
-#> This is mgcv 1.9-4. For overview type '?mgcv'.
 set.seed(1)
 n <- 300
 x <- runif(n)
@@ -87,9 +85,9 @@ summary(b)
 #> 
 #> Formula:
 #> y ~ s(x)
-#> <environment: 0x5574f77c66f0>
+#> <environment: 0x562cdd8baf10>
 #> ~s(x)
-#> <environment: 0x5574f77c66f0>
+#> <environment: 0x562cdd8baf10>
 #> 
 #> Parametric coefficients:
 #>               Estimate Std. Error z value Pr(>|z|)    
