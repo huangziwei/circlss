@@ -9,6 +9,10 @@ knitr::opts_chunk$set(
 )
 ```
 
+*One of three response–predictor geometries:
+[C–L](circular-linear-regression.html) ·
+[L–C](linear-circular-regression.html) · **C–C**.*
+
 A circular–circular (C–C) regression has an angle on both sides: the
 response $\theta$ and the predictor $\varphi$ each live on the circle.
 In `circlss` the predictor side is mgcv-native — the covariate enters

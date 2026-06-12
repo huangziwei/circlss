@@ -16,7 +16,14 @@ the torus — `gam(list(theta ~ s(phi, bs="cc"), ~ s(phi, bs="cc")),
 family = pnlss())`. Code in
 [the torus article](https://huangziwei.github.io/circlss/articles/circular-circular-regression.html).*
 
-Documentation: <https://huangziwei.github.io/circlss/>
+Documentation: <https://huangziwei.github.io/circlss/> — worked examples
+for all three response–predictor geometries:
+[circular–linear](https://huangziwei.github.io/circlss/articles/circular-linear-regression.html)
+(cylinder),
+[linear–circular](https://huangziwei.github.io/circlss/articles/linear-circular-regression.html)
+(cylinder, mgcv-native),
+[circular–circular](https://huangziwei.github.io/circlss/articles/circular-circular-regression.html)
+(torus).
 
 Two families so far: the von Mises `vmlss()` (tan-half location link, log
 concentration — the reference implementation) and the projected normal

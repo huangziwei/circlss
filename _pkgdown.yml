@@ -21,4 +21,6 @@ articles:
 - title: Worked examples
   navbar: ~
   contents:
+  - articles/circular-linear-regression
+  - articles/linear-circular-regression
   - articles/circular-circular-regression
