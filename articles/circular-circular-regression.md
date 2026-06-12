@@ -2,23 +2,37 @@
 
 A circular–circular (C–C) regression has an angle on both sides: the
 response $`\theta`$ and the predictor $`\varphi`$ each live on the
-circle. In `circlss` this is just a circular-response GAM whose
-covariate enters through one of mgcv’s *cyclic* spline bases, so the
-fitted curves close seamlessly at $`\pm\pi`$:
+circle. In `circlss` the predictor side is mgcv-native — the covariate
+enters through a *cyclic* spline basis (`bs = "cc"`), so fitted curves
+close seamlessly at $`\pm\pi`$ — and the response side is a family
+choice with a real consequence:
 
-``` math
-\theta_i \sim \mathrm{vM}\big(\mu(\varphi_i),\ \kappa(\varphi_i)\big),
-\qquad
-\mu = 2\arctan(\eta_1),\quad \kappa = e^{\eta_2},
-```
+- **[`pnlss()`](https://huangziwei.github.io/circlss/reference/pnlss.md)
+  is the general default for C–C.** The response is the angle of a
+  bivariate normal with mean $`(\mu_1(\varphi),
+  \mu_2(\varphi))`$, both identity-linked, so the fitted mean direction
+  $`\mathrm{atan2}(\hat\mu_2, \hat\mu_1)`$ has no branch cut and can
+  **wind** around the circle — including the most classical C–C pattern,
+  rotation-type association ($`\theta \approx \varphi`$: wind direction
+  at $`t`$ vs $`t+\Delta`$, paired before/after headings).
+- **[`vmlss()`](https://huangziwei.github.io/circlss/reference/vmlss.md)
+  is the interpretable special case.** Mean direction and concentration
+  are separate parameters with their own smooths — but its tan-half mean
+  map $`\mu = 2\arctan\{\eta(\varphi)\}`$ has winding number zero and
+  cannot cross $`\theta = \pm\pi`$, so it only suits relationships that
+  *oscillate around a reference direction* rather than wind.
 
-with $`\eta_1 = f_1(\varphi)`$ and $`\eta_2 = f_2(\varphi)`$ two cyclic
-smooths. The natural picture of C–C data is a **torus**: the predictor
-angle runs around the ring, the response angle around the tube, and the
-fitted mean direction $`\hat\mu(\varphi)`$ is a closed curve winding
-over the surface.
+The natural picture for either is a **torus**: predictor angle around
+the ring, response angle around the tube, and the fitted mean direction
+a closed curve on the surface.
 
-## Simulate data
+## A winding relationship, with `pnlss`
+
+Simulating the canonical C–C pattern — the response direction tracks the
+predictor around the circle (winding number 1), with some modulation and
+a concentration that varies over the cycle. Projected normal draws need
+no rejection sampler: the response is literally the angle of a noisy 2-D
+vector.
 
 ``` r
 
@@ -27,102 +41,91 @@ library(mgcv)
 #> This is mgcv 1.9-4. For overview type '?mgcv'.
 library(circlss)
 
-# von Mises deviates, Best & Fisher (1979) rejection sampling
-rvm <- function(n, mu, kappa) {
-  mu <- rep_len(mu, n); kappa <- rep_len(kappa, n); out <- numeric(n)
-  for (i in seq_len(n)) {
-    k <- kappa[i]
-    a <- 1 + sqrt(1 + 4 * k * k); b <- (a - sqrt(2 * a)) / (2 * k)
-    r <- (1 + b * b) / (2 * b)
-    repeat {
-      z <- cos(pi * runif(1)); f <- (1 + r * z) / (r + z)
-      cc <- k * (r - f); u2 <- runif(1)
-      if (cc * (2 - cc) - u2 > 0 || log(cc / u2) + 1 - cc >= 0) {
-        out[i] <- sign(runif(1) - 0.5) * acos(max(min(f, 1), -1)) + mu[i]
-        break
-      }
-    }
-  }
-  atan2(sin(out), cos(out))
-}
-
 set.seed(20260612)
-n <- 200
+n <- 300
 phi <- runif(n, -pi, pi)
-mu_true <- 2 * atan(1.6 * sin(phi))
-kappa_true <- exp(1.4 + 0.6 * cos(phi))
-dat <- data.frame(theta = rvm(n, mu_true, kappa_true), phi = phi)
+dir_true <- phi + 0.6 * sin(phi)            # winds once per cycle
+gamma_true <- exp(0.6 + 0.5 * cos(phi))     # concentration scale
+theta <- atan2(gamma_true * sin(dir_true) + rnorm(n),
+               gamma_true * cos(dir_true) + rnorm(n))
+dat <- data.frame(theta = theta, phi = phi)
 ```
 
-## Fit
-
-Both distribution parameters get their own cyclic smooth; the knots pin
-the period to $`(-\pi, \pi]`$. Smoothing parameters are selected by full
-Newton REML (the family implements log-likelihood derivatives to fourth
-order).
+Both Cartesian mean components get their own cyclic smooth; the knots
+pin the period to $`(-\pi, \pi]`$:
 
 ``` r
 
 b <- gam(list(theta ~ s(phi, bs = "cc", k = 10),
                     ~ s(phi, bs = "cc", k = 10)),
-         family = vmlss(), data = dat, method = "REML",
+         family = pnlss(), data = dat, method = "REML",
          knots = list(phi = c(-pi, pi)))
 summary(b)
 #> 
-#> Family: vmlss 
-#> Link function: tanhalf log 
+#> Family: pnlss 
+#> Link function: identity identity 
 #> 
 #> Formula:
 #> theta ~ s(phi, bs = "cc", k = 10)
 #> ~s(phi, bs = "cc", k = 10)
 #> 
 #> Parametric coefficients:
-#>               Estimate Std. Error z value Pr(>|z|)    
-#> (Intercept)   0.008304   0.050229   0.165    0.869    
-#> (Intercept).1 1.257866   0.091100  13.808   <2e-16 ***
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#>               Estimate Std. Error z value Pr(>|z|)
+#> (Intercept)    0.05426    0.08386   0.647    0.518
+#> (Intercept).1  0.01323    0.07683   0.172    0.863
 #> 
 #> Approximate significance of smooth terms:
 #>            edf Ref.df Chi.sq p-value    
-#> s(phi)   5.563      8 511.37  <2e-16 ***
-#> s.1(phi) 2.893      8  34.23  <2e-16 ***
+#> s(phi)   6.827      8  281.6  <2e-16 ***
+#> s.1(phi) 6.356      8  249.8  <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Deviance explained = 62.2%
-#> -REML = 201.38  Scale est. = 1         n = 200
+#> Deviance explained = 61.6%
+#> -REML = 289.83  Scale est. = 1         n = 300
 ```
 
-Everything mgcv provides for general families works as usual — here are
-the two estimated smooths, on the link scale with credible bands
-($`\eta_1`$: tan-half location; $`\eta_2`$: log concentration):
-
-``` r
-
-plot(b, pages = 1, scheme = 1)
-```
-
-![](circular-circular-regression_files/figure-html/smooths-1.png)
-
-## Flat view
-
-The fitted mean direction $`\hat\mu(\varphi)`$ on the response scale,
-with the data. With this link the mean stays inside $`(-\pi, \pi)`$, the
-Fisher–Lee branch:
-
-The 95% band comes from the link-scale standard errors (mgcv’s Bayesian
-`Vp` intervals) pushed through the monotone tan-half link, the standard
-endpoint transform:
+The fitted direction and its 95% band. The direction depends on *both*
+linear predictors, so the band is a delta-method interval: the joint
+coefficient covariance `Vp` pushed through $`\mathrm{atan2}(\mu_2,
+\mu_1)`$ via the `lpmatrix` — two lines of algebra, and a taste of how
+inference works when the parameters are entangled:
 
 ``` r
 
 phig <- seq(-pi, pi, length.out = 400)
-prl <- predict(b, newdata = data.frame(phi = phig), type = "link",
-               se.fit = TRUE)
-mu_hat <- 2 * atan(prl$fit[, 1])
-mu_lo <- 2 * atan(prl$fit[, 1] - 1.96 * prl$se.fit[, 1])
-mu_hi <- 2 * atan(prl$fit[, 1] + 1.96 * prl$se.fit[, 1])
+pr <- predict(b, newdata = data.frame(phi = phig), type = "response")
+dir_hat <- atan2(pr[, 2], pr[, 1])
+
+Xp <- predict(b, newdata = data.frame(phi = phig), type = "lpmatrix")
+lpi <- attr(Xp, "lpi")
+X1 <- Xp[, lpi[[1]], drop = FALSE]
+X2 <- Xp[, lpi[[2]], drop = FALSE]
+V <- b$Vp
+v11 <- rowSums((X1 %*% V[lpi[[1]], lpi[[1]]]) * X1)
+v22 <- rowSums((X2 %*% V[lpi[[2]], lpi[[2]]]) * X2)
+v12 <- rowSums((X1 %*% V[lpi[[1]], lpi[[2]]]) * X2)
+m1 <- pr[, 1]; m2 <- pr[, 2]; r2 <- m1^2 + m2^2
+se_dir <- sqrt(pmax(m2^2 * v11 + m1^2 * v22 - 2 * m1 * m2 * v12, 0)) / r2
+dir_lo <- dir_hat - 1.96 * se_dir
+dir_hi <- dir_hat + 1.96 * se_dir
+```
+
+### Flat view
+
+Both axes are circles, so the winding fit is a diagonal that wraps: the
+top and bottom edges are the same line, as are left and right. Curves
+are broken at the wrap to avoid spurious verticals:
+
+``` r
+
+lines_wrapped <- function(x, y, ...) {
+  y <- atan2(sin(y), cos(y))
+  br <- which(abs(diff(y)) > pi)
+  s0 <- c(1, br + 1); s1 <- c(br, length(y))
+  for (k in seq_along(s0))
+    if (s1[k] > s0[k]) lines(x[s0[k]:s1[k]], y[s0[k]:s1[k]], ...)
+}
 
 op <- par(mar = c(4, 4, 1, 1))
 plot(dat$phi, dat$theta, pch = 19, col = adjustcolor("#2c5aa0", 0.5),
@@ -134,37 +137,32 @@ axis(1, at = c(-pi, -pi/2, 0, pi/2, pi),
 axis(2, at = c(-pi, -pi/2, 0, pi/2, pi),
      labels = expression(-pi, -pi/2, 0, pi/2, pi))
 box()
-polygon(c(phig, rev(phig)), c(mu_lo, rev(mu_hi)), border = NA,
-        col = adjustcolor("#c0392b", 0.15))
-lines(phig, 2 * atan(1.6 * sin(phig)), col = "gray60", lwd = 1.6, lty = 2)
-lines(phig, mu_hat, col = "#c0392b", lwd = 2.6)
+lines_wrapped(phig, dir_true_g <- phig + 0.6 * sin(phig),
+              col = "gray60", lwd = 1.6, lty = 2)
+lines_wrapped(phig, dir_lo, col = adjustcolor("#c0392b", 0.5), lwd = 1)
+lines_wrapped(phig, dir_hi, col = adjustcolor("#c0392b", 0.5), lwd = 1)
+lines_wrapped(phig, dir_hat, col = "#c0392b", lwd = 2.6)
 legend("topleft", bty = "n", lwd = c(2.6, 1.6), lty = c(1, 2),
-       col = c("#c0392b", "gray60"),
+       col = c("#c0392b", "gray60"), bg = NA,
        legend = c(expression(hat(mu)(varphi) %+-% "95% band"), "truth"))
 ```
 
-![](circular-circular-regression_files/figure-html/flat-1.png)
+![](circular-circular-regression_files/figure-html/flat-pn-1.png)
 
 ``` r
 
 par(op)
 ```
 
-Remember both axes are circles: the top and bottom edges are the same
-line, as are the left and right — which is exactly what the torus shows
-without the cut.
+### The torus
 
-## The torus
-
-Predictor angle $`\varphi`$ around the ring, response angle $`\theta`$
-around the tube; $`(\varphi, \theta)`$ maps to
-$`\big((R + r\cos\theta)\cos\varphi,\ (R + r\cos\theta)\sin\varphi,\
-r\sin\theta\big)`$. Base graphics is enough:
-[`persp()`](https://rdrr.io/r/graphics/persp.html) supplies the
-projection matrix and everything is drawn through
+$`(\varphi, \theta)`$ maps to $`\big((R + r\cos\theta)\cos\varphi,\
+(R + r\cos\theta)\sin\varphi,\ r\sin\theta\big)`$. Base graphics is
+enough: [`persp()`](https://rdrr.io/r/graphics/persp.html) supplies the
+projection matrix, everything is drawn through
 [`trans3d()`](https://rdrr.io/r/grDevices/trans3d.html), with
-depth-based fading for the 3-D cue (the dashed circle is the outer
-equator $`\theta = 0`$, the zero-response reference).
+depth-based fading as the 3-D cue and the 95% band as a translucent
+ribbon (the dashed circle is the outer equator $`\theta = 0`$):
 
 ``` r
 
@@ -245,8 +243,7 @@ draw_torus <- function(dat, mu_hat, phig, lo = NULL, hi = NULL,
     }
   }
 
-  ## fitted mean-direction curve mu-hat(phi), winding over the tube --
-  ## painted in depth order, far half faint
+  ## fitted mean-direction curve, painted in depth order, far half faint
   w <- torus_xyz(phig, mu_hat, R, r)
   dp <- depth3d(w$x, w$y, w$z, pm)
   cv <- trans3d(w$x, w$y, w$z, pm)
@@ -260,94 +257,102 @@ draw_torus <- function(dat, mu_hat, phig, lo = NULL, hi = NULL,
            lwd = 2.2 + 1.6 * seg$a, lend = 1)
   invisible(pm)
 }
-
-draw_torus(dat, mu_hat, phig, lo = mu_lo, hi = mu_hi)
 ```
-
-![](circular-circular-regression_files/figure-html/torus-1.png)
-
-The red curve is the fitted conditional mean direction
-$`\hat\mu(\varphi)`$ with its 95% ribbon: a closed loop on the torus,
-rising over the tube where the response leads the predictor and dipping
-below where it lags, crossing the dashed equator at the two angles where
-$`\mu = 0`$. The ribbon widens where the data thin out.
-
-## What this model can and cannot represent
-
-A scope note before trusting it on your own C–C data. The `vmlss` mean
-map is $`\mu(\varphi) = 2\arctan\{\eta(\varphi)\}`$ with $`\eta`$
-continuous and periodic, so the fitted curve (i) can never touch the
-antipode $`\theta = \pm\pi`$ of the response’s coordinate origin, and
-(ii) has **winding number zero** — as $`\varphi`$ travels once around
-the ring, the curve must come back without wrapping the tube. The
-oscillation above is exactly that class. What it excludes is
-rotation-type association, $`\theta \approx \varphi`$ (wind direction at
-$`t`$ vs $`t + \Delta`$, paired before/after headings), where the
-response winds once per cycle of the predictor.
-
-That case belongs to the **projected normal family
-[`pnlss()`](https://huangziwei.github.io/circlss/reference/pnlss.md)**:
-the response is the angle of a bivariate normal with mean
-$`(\mu_1(\varphi), \mu_2(\varphi))`$, both components identity-linked,
-so the fitted direction $`\mathrm{atan2}(\hat\mu_2, \hat\mu_1)`$ has no
-branch cut and winds freely:
 
 ``` r
 
-set.seed(2)
-n <- 300
+draw_torus(dat, dir_hat, phig, lo = dir_lo, hi = dir_hi)
+```
+
+![](circular-circular-regression_files/figure-html/torus-pn-1.png)
+
+The fitted mean direction winds once around the tube while going once
+around the ring — a (1,1) curve on the torus, with its delta-method
+ribbon hugging it. This is the shape the tan-half family cannot produce.
+
+## The interpretable special case: `vmlss`
+
+When the relationship *oscillates* rather than winds — the response
+swinging around a reference direction as the predictor cycles (diurnal
+wind rotation, heading vs season) — `vmlss` buys you something `pnlss`
+does not: the mean direction $`\mu(\varphi)`$ and the concentration
+$`\kappa(\varphi)`$ are separate, interpretable parameters, each with
+its own smooth and credible band.
+
+``` r
+
+rvm <- function(n, mu, kappa) {
+  mu <- rep_len(mu, n); kappa <- rep_len(kappa, n); out <- numeric(n)
+  for (i in seq_len(n)) {
+    k <- kappa[i]
+    a <- 1 + sqrt(1 + 4 * k * k); b <- (a - sqrt(2 * a)) / (2 * k)
+    r <- (1 + b * b) / (2 * b)
+    repeat {
+      z <- cos(pi * runif(1)); f <- (1 + r * z) / (r + z)
+      cc <- k * (r - f); u2 <- runif(1)
+      if (cc * (2 - cc) - u2 > 0 || log(cc / u2) + 1 - cc >= 0) {
+        out[i] <- sign(runif(1) - 0.5) * acos(max(min(f, 1), -1)) + mu[i]
+        break
+      }
+    }
+  }
+  atan2(sin(out), cos(out))
+}
+
+set.seed(20260612)
+n <- 200
 phi2 <- runif(n, -pi, pi)
-# true direction = phi (winding number 1), constant concentration
-theta2 <- atan2(2 * sin(phi2) + rnorm(n), 2 * cos(phi2) + rnorm(n))
+theta2 <- rvm(n, 2 * atan(1.6 * sin(phi2)), exp(1.4 + 0.6 * cos(phi2)))
 dat2 <- data.frame(theta = theta2, phi = phi2)
 
 b2 <- gam(list(theta ~ s(phi, bs = "cc", k = 10),
                      ~ s(phi, bs = "cc", k = 10)),
-          family = pnlss(), data = dat2, method = "REML",
+          family = vmlss(), data = dat2, method = "REML",
           knots = list(phi = c(-pi, pi)))
-
-pr2 <- predict(b2, newdata = data.frame(phi = phig), type = "response")
-dir_hat <- atan2(pr2[, 2], pr2[, 1])
-
-# 95% band for the direction by the delta method: the direction is a
-# function of BOTH linear predictors, so propagate the joint coefficient
-# covariance Vp through atan2(mu2, mu1) via the lpmatrix
-Xp <- predict(b2, newdata = data.frame(phi = phig), type = "lpmatrix")
-lpi <- attr(Xp, "lpi")
-X1 <- Xp[, lpi[[1]], drop = FALSE]
-X2 <- Xp[, lpi[[2]], drop = FALSE]
-V <- b2$Vp
-v11 <- rowSums((X1 %*% V[lpi[[1]], lpi[[1]]]) * X1)
-v22 <- rowSums((X2 %*% V[lpi[[2]], lpi[[2]]]) * X2)
-v12 <- rowSums((X1 %*% V[lpi[[1]], lpi[[2]]]) * X2)
-m1 <- pr2[, 1]; m2 <- pr2[, 2]; r2 <- m1^2 + m2^2
-se_dir <- sqrt(pmax(m2^2 * v11 + m1^2 * v22 - 2 * m1 * m2 * v12, 0)) / r2
-draw_torus(dat2, dir_hat, phig,
-           lo = dir_hat - 1.96 * se_dir, hi = dir_hat + 1.96 * se_dir)
 ```
 
-![](circular-circular-regression_files/figure-html/winding-1.png)
+The two estimated smooths on the link scale — $`\eta_1`$ drives the
+tan-half location, $`\eta_2`$ the log concentration; this per-parameter
+readout is the point of the family:
 
-The fitted curve now winds once around the tube while going once around
-the ring — a (1,1) curve on the torus, the shape `vmlss` cannot produce.
-(The band here is a delta-method interval: the direction depends on both
-linear predictors, so their joint posterior covariance is pushed through
-$`\mathrm{atan2}(\mu_2, \mu_1)`$ — two lines of `lpmatrix` algebra, and
-a taste of how inference works when the parameters are entangled.) (With
-`vmlss` you can still handle known winding $`m`$ by modelling the
-wrapped residual $`\theta - m\varphi`$ and adding $`m\varphi`$ back;
-`pnlss` just makes the detour unnecessary.) The trade-off runs the other
-way too: `vmlss` separates direction and concentration into
-interpretable parameters with their own smooths, while `pnlss` entangles
-them in $`(\mu_1, \mu_2)`$.
+``` r
 
-## Same model, same numbers, in Python
+plot(b2, pages = 1, scheme = 1)
+```
 
-This model class is the mgcv twin of
+![](circular-circular-regression_files/figure-html/smooths-vm-1.png)
+
+The mean direction’s 95% band comes from the link-scale standard errors
+pushed through the monotone tan-half link (the standard endpoint
+transform), and the fit goes on the same torus:
+
+``` r
+
+prl <- predict(b2, newdata = data.frame(phi = phig), type = "link",
+               se.fit = TRUE)
+mu_hat <- 2 * atan(prl$fit[, 1])
+mu_lo <- 2 * atan(prl$fit[, 1] - 1.96 * prl$se.fit[, 1])
+mu_hi <- 2 * atan(prl$fit[, 1] + 1.96 * prl$se.fit[, 1])
+draw_torus(dat2, mu_hat, phig, lo = mu_lo, hi = mu_hi)
+```
+
+![](circular-circular-regression_files/figure-html/torus-vm-1.png)
+
+An oscillation: the curve rises over the tube where the response leads,
+dips where it lags, and crosses the dashed zero-equator twice — winding
+number zero, exactly the class `vmlss` can represent. The scope rule in
+one breath: the tan-half map keeps $`\mu`$ inside $`(-\pi, \pi)`$ — it
+can neither cross the antipode of the response origin nor wind, so for
+rotation-type data reach for `pnlss` (or model the wrapped residual
+$`\theta - m\varphi`$ with known winding $`m`$ and add $`m\varphi`$
+back).
+
+## Same models, same numbers, in Python
+
+Both families are mgcv twins of
 [pycircstat2](https://github.com/circstat/pycircstat2)’s
-`CLRegression(..., family=vmlss)`; the two implementations are
-differentially tested against each other on every release — identical
-data, Newton-REML both sides — and agree to machine precision for
-cyclic-spline models like this one (see
-`tests/testthat/test-vmlss-parity.R` and `dev/parity/` in the
-repository).
+`CLRegression(..., family=pnlss | vmlss)`, differentially tested against
+it on every release — identical data, Newton-REML both sides. The
+cyclic-spline cases, including the winding projected-normal one, agree
+to near machine precision (see `tests/testthat/test-*-parity.R` and
+`dev/parity/` in the repository).
