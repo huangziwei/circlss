@@ -112,14 +112,18 @@ tensor smooths, random effects — comes for free.
 The derivative algebra is transcribed from pycircstat2’s FD-verified
 implementations, and every release is differentially tested against it:
 the same models on the same data (file-exchanged, Newton-REML both
-sides) must agree within pinned tolerances. At v0.0.1, the battery
-agrees to machine precision (~1e-11) for parametric and cyclic-spline
-models, and to ~3e-5 (smoothing parameters, log-likelihood) with fitted
-curves within 2e-6 radians for thin-plate models, where basis
-eigen-decomposition makes bitwise agreement impossible. The REML
-criteria match to ~1e-9 after normalizing conventions (hea reports -2
-log REML, mgcv -log REML).
+sides, both engines at tightened convergence so optimizer stopping
+points don’t masquerade as disagreement) must agree within a single
+pinned tolerance of 2e-6. Across the twelve-case battery every quantity
+— coefficients, smoothing parameters, edf, log-likelihood, REML
+criterion, fitted curves — agrees to at most 1.4e-7 and typically to
+1e-9..1e-12. The remaining floors are genuine cross-engine limits:
+thin-plate coefficient signs are eigen-decomposition-arbitrary (compared
+sign-aligned; the fitted function is invariant) and special functions
+differ by ulps between scipy and R (~1e-8 in coefficients at
+flat-gradient optima, log-likelihood still agreeing to 1e-13). REML
+criteria match after normalizing conventions (hea reports -2 log REML,
+mgcv -log REML).
 
 `dev/parity/run.sh` reruns the whole side-by-side comparison; the frozen
-battery is asserted hermetically in
-`tests/testthat/test-vmlss-parity.R`.
+battery is asserted hermetically in `tests/testthat/test-*-parity.R`.

@@ -9,13 +9,17 @@
   `rho`; full fourth-order derivatives (Newton REML and EFS). The
   log-density uses the cancellation-free denominator
   `(1-rho)^2 + 4*rho*sin^2(d/2)`, exact as `rho -> 1`.
-- The differential battery grows to twelve cases; all green. One honest
-  reclassification: `wc_cyclic` sits in the EIGEN tolerance class
-  despite its deterministic cc basis, because the heavy-tailed
-  likelihood makes the REML surface flat at the selected lambda — both
-  engines agree on the criterion to ~1e-8 (same optimum) while
-  stopping-point noise leaves ~1e-5 in lambda/edf/loglik. TIGHT requires
-  both a deterministic basis and a well-conditioned criterion.
+- The differential battery grows to twelve cases; all green.
+- The parity instrument now runs both engines at tightened convergence
+  (`conv.tol = 1e-11`; production defaults are untouched). This
+  collapsed what had looked like cross-engine noise classes by up to
+  five orders of magnitude — the former “EIGEN-class” spread (~3e-4) was
+  the engines’ default 1e-6 stopping tolerance, not implementation
+  disagreement. All twelve cases now agree to \<= 1.4e-7 on every
+  quantity (typically 1e-9..1e-12), under a single pinned tolerance of
+  2e-6. The remaining floors are genuine: thin-plate coefficient signs
+  (eigen-arbitrary, compared sign-aligned) and ~1e-8 special-function
+  ulps (scipy log_ndtr vs R pnorm) amplified at flat-gradient optima.
 
 ## circlss 0.0.2
 
